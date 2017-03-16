@@ -31,7 +31,7 @@ export class EventDashboard implements OnInit, OnDestroy {
     constructor(private _route: ActivatedRoute, private _config: AppConfigService, private _events: EventsService) { }
 
     public ngOnInit() {
-        if(!this._config.IsAuthenticated) this._config.Authenticate(this._route.snapshot.url.toString());
+        if(!this._config.IsAuthenticated && this._config.Authenticate(this._route.snapshot.url.toString()) == false) return;
         this._parameterSubscription = this._route.params.subscribe(params => {
             this._id = params['id'];
             this._name = params['name'];

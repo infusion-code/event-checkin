@@ -47,7 +47,6 @@ export class EventsService  {
             }
             return evt;
         }).do(x => console.log(x));
-                // for debugging purposes.
     }
 
     //public GetAttendees(id:string): Promise

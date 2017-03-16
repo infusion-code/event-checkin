@@ -40,9 +40,10 @@ export class AppConfigService extends ConfigService {
         });
     }
 
-    public Authenticate(redirectAfterSuccessUrl?:string | UrlTree){
-        if(this.IsAuthenticated) return; 
-        this._userService.EnsureLogin(redirectAfterSuccessUrl);
+    public Authenticate(redirectAfterSuccessUrl?:string | UrlTree): boolean{
+        if(this.IsAuthenticated) return true; 
+        if(this._userService.EnsureLogin(redirectAfterSuccessUrl) == "") return false;
+        return true;
     }
 
     public FormatString(stringToFormat: string, ...replacements: any[]): string {
