@@ -5,13 +5,15 @@ import { Http, RequestOptions, Headers, Response } from '@angular/http';
 import { AppConfigService } from './configService';
 import { UserService } from './userService';
 import { Event } from '../models/event';
+import { Attendee } from '../models/attendee';
 import 'rxjs/add/operator/catch';
 import 'rxjs/add/operator/map';
 
 @Injectable()
 export class EventsService  {
     private readonly _meQuery: string = "/v3/users/me/events/?expand=venue&order_by=start_desc";
-    private readonly _orgnizerQuery: string = "/v3/organizers/{0}/events/?expand=venue&start_date.range_start={1}&start_date.range_end={2}&order_by=start_desc"
+    private readonly _orgnizerQuery: string = "/v3/organizers/{0}/events/?expand=venue&start_date.range_start={1}&start_date.range_end={2}&order_by=start_desc";
+    private readonly _attendeeQuery: string = "/v3/events/{0}/attendees/";
     private _events:Array<Event>;
 
 
@@ -26,18 +28,7 @@ export class EventsService  {
         return this.GetEvents();
     }
     
-    public GetEvent(id:string): Promise<Event>{
-        let p:Promise<Event> = new Promise<Event>((resolve, reject) => {
-            this.Events.toPromise().then(e => {
-                let evt:Event = e.find( x => x.Id == id);
-                if(evt) resolve(evt);
-                else reject({error: "Not found", message: this._config.FormatString("An event with ID {0} was not found in event collection", id)});
-            });
-        });
-        return p;
-    }
-
-    public GetEventObservable(id:string): Observable<Event>{
+    public GetEvent(id:string): Observable<Event>{
         return this.Events.map((r:Array<Event>) => {
             let evt:Event = r.find( x => x.Id == id);
             if(evt == null){
@@ -49,7 +40,26 @@ export class EventsService  {
         }).do(x => console.log(x));
     }
 
-    //public GetAttendees(id:string): Promise
+    public GetAttendees(id:string): Observable<Array<Attendee>>{
+        if(!this._config.IsAuthenticated) return Observable.of(new Array<Attendee>());
+        let url:string = this._config.ApiEndPointBase +  this._config.FormatString(this._attendeeQuery, id);
+        let options:RequestOptions = new RequestOptions();
+        options.headers = new Headers();
+        options.headers.append("Authorization", "Bearer " + this._config.BearerToken);
+        return this._http.get(url, options).map((r:Response) => {
+            let j = r.json();
+            let u = new Array<Attendee>();
+            j.attendees.forEach(a => {
+                let att:Attendee = new Attendee(a.id, a.profile.name, a.profile.company, a.profile.url, a.profile.email, a.profile.image, a.checked_in);
+                u.push(att);
+            });
+            u.sort((a,b) => { 
+                if (a.Name < b.Name) return -1; 
+                if (a.Name > b.Name) return 1; 
+                return 0;});
+            return u;
+        }).catch((e:any) => Observable.throw(e || 'Server Error')); ;
+    }
 
     protected GetEvents(): Observable<Event[]>{
         if(!this._config.IsAuthenticated) return Observable.of(new Array<Event>());

@@ -1,6 +1,5 @@
 import { Component, Input } from '@angular/core';
 import { Event } from '../models/event'
-import { AppConfigService } from '../services/configService';
 
 @Component({
     selector: 'event-card',

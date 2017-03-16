@@ -10,6 +10,7 @@ import { HomeComponent } from "./components/home/home.component";
 import { LoginComponent } from './components/login';
 import { EventDashboard } from './components/eventDashboard';
 import { EventCard } from './components/eventCard';
+import { AttendeeCard } from './components/attendeeCard';
 import { AppConfigService } from "./services/configService";
 import { UserService } from './services/userService';
 import { UserProfileService } from './services/heroService';
@@ -18,7 +19,7 @@ import { CurrentNavService } from './services/currentNavService';
 
 @NgModule({
     bootstrap: [ AppComponent ],
-    declarations: [ HomeComponent, LoginComponent, EventDashboard, EventCard ],
+    declarations: [ HomeComponent, LoginComponent, EventDashboard, EventCard, AttendeeCard ],
     imports: [
         UniversalModule, // Must be first import. This automatically imports BrowserModule, HttpModule, and JsonpModule too.
         AppScaffoldModule,
