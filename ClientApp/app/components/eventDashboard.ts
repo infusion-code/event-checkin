@@ -12,7 +12,7 @@ import { EventsService } from '../services/eventsService';
         <ng-container *ngIf="_config.IsAuthenticated">
             <div class="side-body padding-top">
                 <event-card [Event]="Event"></event-card>
-                <div *ngIf="Attendees != null" class="row attendeeContainer">
+                <div *ngIf="Attendees != null" class="row attendeeContainer align-items-start">
                     <div *ngFor="let attendee of Attendees" class="col-xs-12 col-sm-6 col-md-6 col-lg-4 col-xl-3">
                         <attendee-card [ngClass]="{'green': attendee.CheckedIn, 'red': !attendee.CheckedIn}"  [Attendee]="attendee" ></attendee-card>
                     </div> 

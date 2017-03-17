@@ -34,6 +34,7 @@ module.exports = {
             'es6-shim',
             'es6-promise',
             'jquery',
+            'tether',
             'zone.js',
         ]
     },
@@ -44,7 +45,7 @@ module.exports = {
     },
     plugins: [
         extractCSS,
-        new webpack.ProvidePlugin({ $: 'jquery', jQuery: 'jquery' }), // Maps these identifiers to the jQuery package (because Bootstrap expects it to be a global variable)
+        new webpack.ProvidePlugin({ $: 'jquery', jQuery: 'jquery', 'window.jQuery': 'jquery', 'Tether': 'tether' }), // Maps these identifiers to the jQuery package (because Bootstrap expects it to be a global variable)
         new webpack.optimize.OccurenceOrderPlugin(),
         new webpack.DllPlugin({
             path: path.join(__dirname, 'wwwroot', 'dist', '[name]-manifest.json'),

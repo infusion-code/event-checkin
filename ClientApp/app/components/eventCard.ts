@@ -16,7 +16,7 @@ import { Event } from '../models/event'
                 </div>
                 <div class="col-xl-1 col-lg-2 col-sm-3 col-md-2 col-xs-12">
                     <div class="date hidden-xs">{{Event.Start.toLocaleDateString()}}</div>
-                    <div class="time hidden-xs">{{Event.End.toLocaleTimeString()}} - {{Event.End.toLocaleTimeString()}}</div>
+                    <div class="time hidden-xs">{{Event.Start.toLocaleTimeString()}} - {{Event.End.toLocaleTimeString()}}</div>
                     <div class="time hidden-xl hidden-lg hidden-md hidden-sm">{{Event.Start.toLocaleDateString()}}, {{Event.Start.toLocaleTimeString()}} - {{Event.End.toLocaleTimeString()}}</div>
                 </div>
             </div>

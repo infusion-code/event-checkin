@@ -2,6 +2,7 @@ import 'angular2-universal-polyfills/browser';
 import { enableProdMode } from '@angular/core';
 import { platformUniversalDynamic } from 'angular2-universal';
 import { AppModule } from './app/app.module';
+import 'tether';
 import 'bootstrap';
 import './__workaround.browser';
 
