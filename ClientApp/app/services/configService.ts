@@ -29,6 +29,7 @@ export class AppConfigService extends ConfigService {
         this._showSubscriptions = false;
         this._showHero = false;
         this._showNotifications = false;
+        this._expandCurrentNavOnLoad = false;
         this._version = "0.0.1";
         
         this._userService.ClientId = this._clientId;

@@ -2,6 +2,8 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Observable, Subscription } from 'rxjs/Rx';
 import { UserService } from '../services/userService';
+import { CurrentNavService } from '../services/currentNavService';
+import { AppConfigService } from '../services/configService';
 
 @Component({
     selector: 'login',
@@ -17,22 +19,23 @@ import { UserService } from '../services/userService';
     `
 })
 export class LoginComponent implements OnInit, OnDestroy {
-    private _loginTimerSubscription:Subscription = null;
-    private _querySubscription: Subscription = null;
+    private _initialNavSubscription: Subscription = null;
 
-    constructor(private _userService: UserService, private _route: ActivatedRoute){ }
+    constructor(private _config: AppConfigService, private _userService: UserService, private _currentNav: CurrentNavService){ }
 
     public ngOnInit(){
         let timer: Observable<number> = null;
-        this._userService.EnsureLogin("/start");
+        this._userService.EnsureLogin("/login");
+        this._initialNavSubscription = this._currentNav.RouteRequest.subscribe(u => {
+            if(u != "" && this._config.IsAuthenticated) this._currentNav.Route(u);
+        })
     }
 
     public ngOnDestroy(){
-        if(this._querySubscription) this._querySubscription.unsubscribe();
+        if(this._initialNavSubscription) this._initialNavSubscription.unsubscribe();
     }
 
     private RedirectToEventBriteLogin(t: number){
-        this._loginTimerSubscription.unsubscribe();
         window.location.href = this._userService.LoginEndPoint;
     }
 }

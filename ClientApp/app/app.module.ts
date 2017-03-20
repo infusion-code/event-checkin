@@ -6,7 +6,7 @@ import { AppScaffoldModule, AppComponent, ConfigService, HeroService, CurrentNav
 import { TilesAndCardsModule } from 'ng2-cards-and-tiles';
 import { ActivatedRoute , Router } from '@angular/router';
 
-import { HomeComponent } from "./components/home/home.component";
+import { ErrorComponent } from "./components/error";
 import { LoginComponent } from './components/login';
 import { EventDashboard } from './components/eventDashboard';
 import { EventCard } from './components/eventCard';
@@ -16,10 +16,11 @@ import { UserService } from './services/userService';
 import { UserProfileService } from './services/heroService';
 import { EventsService } from './services/eventsService';
 import { CurrentNavService } from './services/currentNavService';
+import { ErrorService } from './services/errorService';
 
 @NgModule({
     bootstrap: [ AppComponent ],
-    declarations: [ HomeComponent, LoginComponent, EventDashboard, EventCard, AttendeeCard ],
+    declarations: [ ErrorComponent, LoginComponent, EventDashboard, EventCard, AttendeeCard ],
     imports: [
         UniversalModule, // Must be first import. This automatically imports BrowserModule, HttpModule, and JsonpModule too.
         AppScaffoldModule,
@@ -29,11 +30,8 @@ import { CurrentNavService } from './services/currentNavService';
     providers: [
         AppConfigService,
         EventsService,
-        {  
-            provide: CurrentNavProvider, deps: [AppConfigService, EventsService, UserService], useFactory: (config : AppConfigService, events: EventsService, user: UserService) => {
-                return new CurrentNavService(config, events, user);
-            }
-        },
+        CurrentNavService,
+        ErrorService,
         { 
             provide: UserService, deps: [Router], useFactory: (router: Router) => {
                 return new UserService(router);
@@ -44,7 +42,9 @@ import { CurrentNavService } from './services/currentNavService';
                 return new UserProfileService(config, http);
             }
         },
-        { provide: ConfigService, useExisting: AppConfigService }
+        { provide: ConfigService, useExisting: AppConfigService },
+        { provide: CurrentNavProvider, useExisting: CurrentNavService }
+
     ]
 })
 export class AppModule {    

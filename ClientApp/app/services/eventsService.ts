@@ -28,6 +28,17 @@ export class EventsService  {
         return this.GetEvents();
     }
     
+    public Checkin(eventId: string, attendeeId: string):Observable<boolean>{
+        return Observable.of(false)
+            .map((v:boolean) => {
+                Observable.throw("The checkin operation is not currently implemented due to lack of support in the EventBrite APIs.");
+                return false;
+            })
+            .do(x => { 
+                console.log("The checkin operation is not currently implemented due to lack of support in the EventBrite APIs.")
+            });
+    }
+
     public GetEvent(id:string): Observable<Event>{
         return this.Events.map((r:Array<Event>) => {
             let evt:Event = r.find( x => x.Id == id);
@@ -61,6 +72,14 @@ export class EventsService  {
         }).catch((e:any) => Observable.throw(e || 'Server Error')); ;
     }
 
+    public GetCheckedInAttendees(id:string): Observable<Array<Attendee>>{
+        return this.GetAttendees(id).map((attendees:Array<Attendee>) => { return attendees.filter((a:Attendee) => { return a.CheckedIn;}); });
+    }
+
+    public GetRegisteredAttendees(id:string): Observable<Array<Attendee>>{
+        return this.GetAttendees(id).map((attendees:Array<Attendee>) => { return attendees.filter((a:Attendee) => { return !a.CheckedIn;}); });
+    }
+
     protected GetEvents(): Observable<Event[]>{
         if(!this._config.IsAuthenticated) return Observable.of(new Array<Event>());
         let startDate: Date = new Date(Date.now() - (this._config.PastEventWindow * 86400000));
@@ -84,7 +103,7 @@ export class EventsService  {
                     new Date(e.start.utc),
                     new Date(e.end.utc),
                     e.venue.address.localized_address_display,
-                    e.logo.url,
+                    e.logo ? e.logo.url || null : null,
                     e.name.html,
                     e.description.html
                 );
