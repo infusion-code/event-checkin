@@ -26,5 +26,9 @@ export class Attendee{
         this._image = image ? image : '';
         this._checkedin = checkedin || false;
     }
+}
 
+export class AttendeeCollection{
+    attendees: Array<Attendee>
+    nextPage: number; 
 }

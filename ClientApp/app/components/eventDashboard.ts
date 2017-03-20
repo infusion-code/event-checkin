@@ -13,25 +13,37 @@ import { EventsService } from '../services/eventsService';
         <ng-container *ngIf="_config.IsAuthenticated">
             <div class="side-body padding-top">
                 <event-card [Event]="Event"></event-card>
-                <div *ngIf="RegisteredAttendees != null && RegisteredAttendees.length > 0" class="row attendeeContainer align-items-start">
-                    <h4>Registered Attendees</h4>
-                    <div *ngFor="let attendee of RegisteredAttendees" class="col-xs-12 col-sm-6 col-md-6 col-lg-4 col-xl-3">
-                        <attendee-card [ngClass]="{'green': attendee.CheckedIn, 'red': !attendee.CheckedIn}"  [Attendee]="attendee" [Event]="Event" (Checkout)="OnCheckout($event)" (Checkin)="OnCheckin($event)" ></attendee-card>
-                    </div>
-                </div> 
-                <div *ngIf="CheckedInAttendees != null && CheckedInAttendees.length > 0" class="row attendeeContainer align-items-start">
-                    <h4>CheckedIn Attendees</h4>
-                    <div *ngFor="let attendee of CheckedInAttendees" class="col-xs-12 col-sm-6 col-md-6 col-lg-4 col-xl-3">
-                        <attendee-card [ngClass]="{'green': attendee.CheckedIn, 'red': !attendee.CheckedIn}"  [Attendee]="attendee" [Event]="Event" (Checkout)="OnCheckout($event)" (Checkin)="OnCheckin($event)" ></attendee-card>
-                    </div> 
+                <div class="attendeeSection">
+                    <ng-container *ngIf="RegisteredAttendees != null && RegisteredAttendees.length > 0">
+                        <a class="sectionheader" data-toggle="collapse" href="#registered_section"><h4>Registered Attendees</h4><span class="icon fa"></span></a>
+                        <div class="row attendeeContainer align-items-start collapse in" id="registered_section">
+                            <div *ngFor="let attendee of RegisteredAttendees" class="col-xs-12 col-sm-6 col-md-6 col-lg-4 col-xl-3" >
+                                <attendee-card [ngClass]="{'green': attendee.CheckedIn, 'red': !attendee.CheckedIn}"  [Attendee]="attendee" [Event]="Event" (Checkout)="OnCheckout($event)" (Checkin)="OnCheckin($event)" ></attendee-card>
+                            </div>
+                        </div> 
+                    </ng-container>
+                    <ng-container *ngIf="CheckedInAttendees != null && CheckedInAttendees.length > 0">
+                        <a class="sectionheader" data-toggle="collapse" href="#checked-in_section"><h4>CheckedIn Attendees</h4><span class="icon fa"></span></a>
+                        <div class="row attendeeContainer align-items-start collapse in" id="checked-in_section">   
+                            <div *ngFor="let attendee of CheckedInAttendees" class="col-xs-12 col-sm-6 col-md-6 col-lg-4 col-xl-3">
+                                <attendee-card [ngClass]="{'green': attendee.CheckedIn, 'red': !attendee.CheckedIn}"  [Attendee]="attendee" [Event]="Event" (Checkout)="OnCheckout($event)" (Checkin)="OnCheckin($event)" ></attendee-card>
+                            </div> 
+                        </div>
+                    </ng-container>
                 </div>
             </div>
         </ng-container>
         <iframe *ngIf="IFrameUrl != null" [src] = "IFrameUrl" class="invisibleiframe" ></iframe>
     `,
     styles: [`
-        .attendeeContainer { margin-top: 25px; }
+        .attendeeSection { margin-top: 25px; }
+        .attendeeContainer { margin-top: 0px; }
         .invisibleiframe { position: absolute; top: -100000px; }
+        a.sectionheader, a.sectionheader:hover, a.sectionheader:focus, a.sectionheader:active, a.sectionheader:visited { color: white; display: block; }
+        a.sectionheader h4:after { font-family: FontAwesome; content: "\\f107"; padding-left: 5px; }
+        a.sectionheader.collapsed h4:after { font-family: FontAwesome; content: "\\f106"; padding-left: 5px; }
+        h4 { margin-bottom: 5px; }
+        event-card { margin-bottom: 15px }
     `]
 })
 export class EventDashboard implements OnInit, OnDestroy {
@@ -58,11 +70,15 @@ export class EventDashboard implements OnInit, OnDestroy {
         this._parameterSubscription = this._route.params.subscribe(params => {
             this._id = params['id'];
             this._name = params['name'];
-            this._checkedInAttendees = null;
-            this._registeredAttendees = null;
+            this._checkedInAttendees = new Array<Attendee>();
+            this._registeredAttendees = new Array<Attendee>();
             this._events.GetEvent(this._id).subscribe(e => this._event = e);
-            this._events.GetCheckedInAttendees(this._id).subscribe(a => this._checkedInAttendees = a);
-            this._events.GetRegisteredAttendees(this._id).subscribe(a => this._registeredAttendees = a);    
+            this._events.GetCheckedInAttendees(this._id).subscribe(a => { 
+                this._checkedInAttendees = this._checkedInAttendees.concat(a); 
+            });
+            this._events.GetRegisteredAttendees(this._id).subscribe(a => { 
+                this._registeredAttendees = this._registeredAttendees.concat(a); 
+            });    
         });
     }
 

@@ -5,7 +5,7 @@ import { Http, RequestOptions, Headers, Response } from '@angular/http';
 import { AppConfigService } from './configService';
 import { UserService } from './userService';
 import { Event } from '../models/event';
-import { Attendee } from '../models/attendee';
+import { Attendee, AttendeeCollection } from '../models/attendee';
 import 'rxjs/add/operator/catch';
 import 'rxjs/add/operator/map';
 
@@ -53,31 +53,30 @@ export class EventsService  {
 
     public GetAttendees(id:string): Observable<Array<Attendee>>{
         if(!this._config.IsAuthenticated) return Observable.of(new Array<Attendee>());
-        let url:string = this._config.ApiEndPointBase +  this._config.FormatString(this._attendeeQuery, id);
-        let options:RequestOptions = new RequestOptions();
-        options.headers = new Headers();
-        options.headers.append("Authorization", "Bearer " + this._config.BearerToken);
-        return this._http.get(url, options).map((r:Response) => {
-            let j = r.json();
-            let u = new Array<Attendee>();
-            j.attendees.forEach(a => {
-                let att:Attendee = new Attendee(a.id, a.profile.name, a.profile.company, a.profile.url, a.profile.email, a.profile.image, a.checked_in);
-                u.push(att);
-            });
-            u.sort((a,b) => { 
-                if (a.Name < b.Name) return -1; 
-                if (a.Name > b.Name) return 1; 
-                return 0;});
-            return u;
-        }).catch((e:any) => Observable.throw(e || 'Server Error')); ;
+
+        let callAndMap = (page_number) => this.GetAttendeesPage(id, page_number).map(res => { return { page: page_number, data: res.json()}}); 
+        return callAndMap(0)
+            .expand(obj => (obj.data.pagination.page_count != obj.data.pagination.page_number  ? callAndMap(obj.page + 1) : Observable.empty()))
+            .map(obj => {
+                let u = new Array<Attendee>();
+                obj.data.attendees.forEach(a => {
+                    let att:Attendee = new Attendee(a.id, a.profile.name, a.profile.company, a.profile.url, a.profile.email, a.profile.image, a.checked_in);
+                    u.push(att);
+                });
+                u.sort((a,b) => { 
+                    if (a.Name < b.Name) return -1; 
+                    if (a.Name > b.Name) return 1; 
+                    return 0;});
+                return u; })
+            .catch((e:any) => Observable.throw(e || 'Server Error')); ;
     }
 
     public GetCheckedInAttendees(id:string): Observable<Array<Attendee>>{
-        return this.GetAttendees(id).map((attendees:Array<Attendee>) => { return attendees.filter((a:Attendee) => { return a.CheckedIn;}); });
+        return this.GetAttendees(id).map((attendees: Array<Attendee>) => { return attendees.filter((a:Attendee) => { return a.CheckedIn;}); });
     }
 
     public GetRegisteredAttendees(id:string): Observable<Array<Attendee>>{
-        return this.GetAttendees(id).map((attendees:Array<Attendee>) => { return attendees.filter((a:Attendee) => { return !a.CheckedIn;}); });
+        return this.GetAttendees(id).map((attendees: Array<Attendee>) => { return attendees.filter((a:Attendee) => { return !a.CheckedIn;}); });
     }
 
     protected GetEvents(): Observable<Event[]>{
@@ -113,4 +112,11 @@ export class EventsService  {
         }).catch((e:any) => Observable.throw(e || 'Server Error'));  
     }
 
+    private GetAttendeesPage(id: string, page: number): Observable<Response> {
+        let url:string = this._config.ApiEndPointBase +  this._config.FormatString(this._attendeeQuery, id) + (page != null ? this._config.FormatString("?page={0}", page) : "");
+        let options:RequestOptions = new RequestOptions();
+        options.headers = new Headers();
+        options.headers.append("Authorization", "Bearer " + this._config.BearerToken);
+        return this._http.get(url, options);
+    }
 }
