@@ -33,10 +33,13 @@ namespace Infusion.CheckinAndGreeter.Controllers
         {
             using (_logger.BeginScope("Initiate Post"))
             {
+                string resourceUrl = value.api_url.Value;
+                //string attendeeId = 
+
                 string payload = Newtonsoft.Json.JsonConvert.SerializeObject(value);
                 _logger.LogTrace(1001, "Post Received: payload {0}", payload);
             }
-            return CreatedAtRoute("/api/notifications", new { result =  "success" });
+            return StatusCode(200, new { result =  "success" });
         }
 
     }
