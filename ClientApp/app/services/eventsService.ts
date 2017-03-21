@@ -14,6 +14,8 @@ export class EventsService  {
     private readonly _meQuery: string = "/v3/users/me/events/?expand=venue&order_by=start_desc";
     private readonly _orgnizerQuery: string = "/v3/organizers/{0}/events/?expand=venue&start_date.range_start={1}&start_date.range_end={2}&order_by=start_desc";
     private readonly _attendeeQuery: string = "/v3/events/{0}/attendees/";
+    private readonly _singleAttendeeQuery: string = "/v3/events/{0}/attendees/{1}/";
+    private readonly _checkinUrl = "https://www.eventbrite.com/checkin_update?eid={0}&attendee={1}&quantity={2}";
     private _events:Array<Event>;
 
 
@@ -29,14 +31,11 @@ export class EventsService  {
     }
     
     public Checkin(eventId: string, attendeeId: string):Observable<boolean>{
-        return Observable.of(false)
-            .map((v:boolean) => {
-                Observable.throw("The checkin operation is not currently implemented due to lack of support in the EventBrite APIs.");
-                return false;
-            })
-            .do(x => { 
-                console.log("The checkin operation is not currently implemented due to lack of support in the EventBrite APIs.")
-            });
+        return this.UpdateCheckinStatus(eventId, attendeeId, 1);
+    }
+
+    public Checkout(eventId: string, attendeeId: string):Observable<boolean>{
+        return this.UpdateCheckinStatus(eventId, attendeeId, 0);
     }
 
     public GetEvent(id:string): Observable<Event>{
@@ -118,5 +117,70 @@ export class EventsService  {
         options.headers = new Headers();
         options.headers.append("Authorization", "Bearer " + this._config.BearerToken);
         return this._http.get(url, options);
+    }
+
+    private UpdateCheckinStatus(eventId: string, attendeeId: string, numberOfTickets: number):Observable<boolean>{
+        let u: string = this._config.FormatString(this._checkinUrl, eventId, attendeeId, numberOfTickets);
+        let a: string = this._config.ApiEndPointBase +  this._config.FormatString(this._singleAttendeeQuery, eventId, attendeeId);
+        let r: Subject<boolean> = new Subject<boolean>();
+        let proceed: boolean = false;
+        let cleanup: number = 0;
+        let f:HTMLIFrameElement = null;
+        let options:RequestOptions = new RequestOptions();
+        let removeIframe = () => { 
+            if(f != null) document.body.removeChild(f); 
+            if(cleanup != 0) {
+                window.clearTimeout(cleanup);
+                cleanup = 0;
+            }
+        };
+        let validate = () => {
+            window.setTimeout(()=>{
+                this._http.get(a, options).map((res:Response) => {
+                    let j = res.json();
+                    if(j.checked_in && numberOfTickets > 0 || !j.checked_in && numberOfTickets == 0) {
+                        // report to caller that checkin succeeded. 
+                        r.next(j.checked_in);
+                        proceed = true;
+                        removeIframe();    
+                    }
+                    if(!proceed) validate();
+                }).catch((e) => {
+                    // report to the caller that checkin failed. 
+                    r.next(numberOfTickets == 0);
+                    proceed = true;
+                    removeIframe();
+                    console.log(e);
+                    return Observable.throw(e);
+                }).subscribe();
+            }, 100)           
+        };
+
+        options.headers = new Headers();
+        options.headers.append("Authorization", "Bearer " + this._config.BearerToken);       
+        if(window && document){
+            // The following will result in a console error about cross domain origin iframes, but the operation actually succeeds. 
+            f = document.createElement("iframe");
+            f.src = u;
+            f.style.position = "absolute";
+            f.style.top = "-100000px";
+            document.body.appendChild(f);
+        }
+
+        // validate checkin by polling the attendee...
+        validate();
+        
+        // destroy iframe after 10 seconds regardless
+        cleanup = window.setTimeout(() => {
+            if(!proceed){
+                // destroy iframe
+                removeIframe();
+                // report to the caller that checkin failed (checkin = false)
+                proceed = true;
+                r.next(numberOfTickets == 0);
+            }
+        }, 10000)
+
+        return r.asObservable();
     }
 }

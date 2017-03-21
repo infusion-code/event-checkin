@@ -33,12 +33,10 @@ import { EventsService } from '../services/eventsService';
                 </div>
             </div>
         </ng-container>
-        <iframe *ngIf="IFrameUrl != null" [src] = "IFrameUrl" class="invisibleiframe" ></iframe>
     `,
     styles: [`
         .attendeeSection { margin-top: 25px; }
         .attendeeContainer { margin-top: 0px; }
-        .invisibleiframe { position: absolute; top: -100000px; }
         a.sectionheader, a.sectionheader:hover, a.sectionheader:focus, a.sectionheader:active, a.sectionheader:visited { color: white; display: block; }
         a.sectionheader h4:after { font-family: FontAwesome; content: "\\f107"; padding-left: 5px; }
         a.sectionheader.collapsed h4:after { font-family: FontAwesome; content: "\\f106"; padding-left: 5px; }
@@ -47,8 +45,6 @@ import { EventsService } from '../services/eventsService';
     `]
 })
 export class EventDashboard implements OnInit, OnDestroy {
-    private readonly _checkinUrl = "https://www.eventbrite.com/checkin_update?eid={0}&attendee={1}&quantity={2}";
-
     private _parameterSubscription: Subscription = null;
     private _id: string;
     private _name: string;
@@ -84,40 +80,33 @@ export class EventDashboard implements OnInit, OnDestroy {
 
 
     public OnCheckin(attendee: Attendee){
-        let u:string = this._config.FormatString(this._checkinUrl,  this._event.Id, attendee.Id, 1);
-
-        // The following will result in a console error about cross domain origin iframes, but the operation actually succeeds. 
-        this._iframeUrl = this._sanitizer.bypassSecurityTrustResourceUrl(u);
-        console.log("The following X-Frame-Options error can be safely ignored. The payload executes fine, which is all we are interested in.");
-        
-        // preliminary set attended status prior to confirm
-        attendee.CheckedIn = true;
-        this._checkedInAttendees.push(attendee);
-        this._checkedInAttendees.sort((a,b) => { 
-                if (a.Name < b.Name) return -1; 
-                if (a.Name > b.Name) return 1; 
-                return 0;});
-        this._registeredAttendees = this._registeredAttendees.filter((a:Attendee) => { return a.Id != attendee.Id; });
+        this._events.Checkin(this._event.Id, attendee.Id).subscribe(e => {
+            attendee.CheckedIn = e;
+            if(attendee.CheckedIn){
+                this._checkedInAttendees.push(attendee);
+                this._checkedInAttendees.sort((a,b) => { 
+                    if (a.Name < b.Name) return -1; 
+                    if (a.Name > b.Name) return 1; 
+                    return 0;
+                });
+                this._registeredAttendees = this._registeredAttendees.filter((a:Attendee) => { return a.Id != attendee.Id; });
+            }
+        });
     }
 
     public OnCheckout(attendee: Attendee){
-        let u:string = this._config.FormatString(this._checkinUrl,  this._event.Id, attendee.Id, 0);
-
-        // The following will result in a console error about cross domain origin iframes, but the operation actually succeeds. 
-        this._iframeUrl = this._sanitizer.bypassSecurityTrustResourceUrl(u);
-        console.log("The following X-Frame-Options error can be safely ignored. The payload executes fine, which is all we are interested in.");
-        
-        // preliminary set attended status prior to confirm
-        attendee.CheckedIn = false;
-        this._registeredAttendees.push(attendee);
-        this._registeredAttendees.sort((a,b) => { 
-                if (a.Name < b.Name) return -1; 
-                if (a.Name > b.Name) return 1; 
-                return 0;});
-        this._checkedInAttendees = this._checkedInAttendees.filter((a:Attendee) => { return a.Id != attendee.Id; });
+        this._events.Checkout(this._event.Id, attendee.Id).subscribe(e => {
+            attendee.CheckedIn = e;
+            if(!attendee.CheckedIn){
+                this._registeredAttendees.push(attendee);
+                this._registeredAttendees.sort((a,b) => { 
+                        if (a.Name < b.Name) return -1; 
+                        if (a.Name > b.Name) return 1; 
+                        return 0;});
+                this._checkedInAttendees = this._checkedInAttendees.filter((a:Attendee) => { return a.Id != attendee.Id; });
+            }
+        });
     }
-
-    //private {}
 
     public ngOnDestroy() {
         if (this._parameterSubscription) this._parameterSubscription.unsubscribe();
