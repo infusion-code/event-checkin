@@ -6,6 +6,8 @@ export class Attendee{
     private _email:string;
     private _image:string;
     private _checkedin: boolean;
+    private _updateInProgress: boolean;
+    private _numberOfTickets: number;
 
     public get Id(): string { return this._id; }
     public get Name(): string { return this._name; }
@@ -13,11 +15,15 @@ export class Attendee{
     public get DetailUrl(): string { return this._detail; }
     public get Email(): string { return this._email; }
     public get ImageUrl(): string { return this._image; }
+    public get NumberOfTickets() : number { return this._numberOfTickets; }
 
     public get CheckedIn(): boolean { return this._checkedin; }
     public set CheckedIn(val: boolean) { this._checkedin = val; }
+    public get UpdateInProgress(): boolean { return this._updateInProgress; }
+    public set UpdateInProgress(val: boolean) { this._updateInProgress = val; }
 
-    constructor(id: string, name:string, company: string, profileUrl:string, email:string, image?:string, checkedin?: boolean ){
+
+    constructor(id: string, name:string, company: string, profileUrl:string, email:string, image?:string, checkedin?: boolean, numberOfTickets?: number ){
         this._id = id;
         this._name = name;
         this._company = company;
@@ -25,6 +31,8 @@ export class Attendee{
         this._email = email;
         this._image = image ? image : '';
         this._checkedin = checkedin || false;
+        this._numberOfTickets = numberOfTickets || 0;
+        this._updateInProgress = false;
     }
 }
 

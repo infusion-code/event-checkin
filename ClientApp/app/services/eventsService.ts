@@ -59,7 +59,7 @@ export class EventsService  {
             .map(obj => {
                 let u = new Array<Attendee>();
                 obj.data.attendees.forEach(a => {
-                    let att:Attendee = new Attendee(a.id, a.profile.name, a.profile.company, a.profile.url, a.profile.email, a.profile.image, a.checked_in);
+                    let att:Attendee = new Attendee(a.id, a.profile.name, a.profile.company, a.profile.url, a.profile.email, a.profile.image, a.checked_in, a.quantity);
                     u.push(att);
                 });
                 u.sort((a,b) => { 

@@ -80,6 +80,7 @@ export class EventDashboard implements OnInit, OnDestroy {
 
 
     public OnCheckin(attendee: Attendee){
+        attendee.UpdateInProgress = true;
         this._events.Checkin(this._event.Id, attendee.Id).subscribe(e => {
             attendee.CheckedIn = e;
             if(attendee.CheckedIn){
@@ -91,10 +92,12 @@ export class EventDashboard implements OnInit, OnDestroy {
                 });
                 this._registeredAttendees = this._registeredAttendees.filter((a:Attendee) => { return a.Id != attendee.Id; });
             }
+            attendee.UpdateInProgress = false;
         });
     }
 
     public OnCheckout(attendee: Attendee){
+        attendee.UpdateInProgress = true;
         this._events.Checkout(this._event.Id, attendee.Id).subscribe(e => {
             attendee.CheckedIn = e;
             if(!attendee.CheckedIn){
@@ -105,6 +108,7 @@ export class EventDashboard implements OnInit, OnDestroy {
                         return 0;});
                 this._checkedInAttendees = this._checkedInAttendees.filter((a:Attendee) => { return a.Id != attendee.Id; });
             }
+            attendee.UpdateInProgress = false;
         });
     }
 

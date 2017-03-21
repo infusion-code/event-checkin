@@ -13,8 +13,7 @@ import { EventsService } from '../services/eventsService';
             <div class="email" title="{{Attendee.Email}}">{{Attendee.Email}}</div>
         </div>
         <div class="col-xs-3 col-sm-3 col-md-2 col-lg-2 col-xl-1 checkin" [ngClass]="{'green': Attendee.CheckedIn, 'red': !Attendee.CheckedIn}"  (click)="ToggleCheckedInStatus()">
-            <span *ngIf="Attendee.CheckedIn" class="icon fa fa-sign-out"></span>
-            <span *ngIf="!Attendee.CheckedIn" class="icon fa fa-sign-in"></span>
+            <span class="icon fa"  [ngClass]="{'fa-sign-out': Attendee.CheckedIn && !Attendee.UpdateInProgress, 'fa-sign-in': !Attendee.CheckedIn && !Attendee.UpdateInProgress, 'fa-circle-o-notch fa-spin': Attendee.UpdateInProgress}" ></span>
         </div>
     `,
     styles: [`
