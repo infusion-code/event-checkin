@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 
-namespace ng2CheckInAndGreeter.Controllers
+namespace Infusion.CheckinAndGreeter.Controllers
 {
     public class HomeController : Controller
     {

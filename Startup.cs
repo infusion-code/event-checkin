@@ -6,7 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace ng2CheckInAndGreeter
+namespace Infusion.CheckinAndGreeter
 {
     public class Startup
     {

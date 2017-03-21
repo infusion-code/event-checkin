@@ -2,7 +2,7 @@ using System.IO;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 
-namespace ng2CheckInAndGreeter
+namespace Infusion.CheckinAndGreeter
 {
     public class Program
     {
