@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 
 namespace Infusion.CheckinAndGreeter.Controllers
 {
@@ -28,13 +29,14 @@ namespace Infusion.CheckinAndGreeter.Controllers
         }
 
         [HttpPost]
-        public IActionResult Notify()
+        public IActionResult Notify([FromBody]dynamic value)
         {
             using (_logger.BeginScope("Initiate Post"))
             {
-                _logger.LogTrace(1001, "Post Received");
+                string payload = Newtonsoft.Json.JsonConvert.SerializeObject(value);
+                _logger.LogTrace(1001, "Post Received: payload {0}", payload);
             }
-            return CreatedAtRoute("", new { result =  "success" });
+            return CreatedAtRoute("/api/notifications", new { result =  "success" });
         }
 
     }
