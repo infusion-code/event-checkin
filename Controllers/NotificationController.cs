@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -18,28 +19,32 @@ namespace Infusion.CheckinAndGreeter.Controllers
             _logger = logger;
         }
 
-        [HttpGet]
-        public async Task<Object> Get()
-        {
-            using (_logger.BeginScope("Initiate Get"))
-            {
-                _logger.LogTrace(1000, "Entered Get Block");
-            }
-            return new { result = "success" }; 
-        }
-
         [HttpPost]
         public IActionResult Notify([FromBody]dynamic value)
         {
-            using (_logger.BeginScope("Initiate Post"))
+            if(value == null) return BadRequest();
+            if(value.config.action.Value != "barcode.checked_in" && value.config.action.Value != "barcode.un_checked_in") return BadRequest();
+            string payload = Newtonsoft.Json.JsonConvert.SerializeObject(value);
+            using (_logger.BeginScope("Initiate payload processing: {0}", payload))
             {
                 string resourceUrl = value.api_url.Value;
-                //string attendeeId = 
+                string attendeeId = string.Empty;
+                string eventId = string.Empty;
+                bool isCheckin = value.config.action.Value == "barcode.checked_in" ;
 
-                string payload = Newtonsoft.Json.JsonConvert.SerializeObject(value);
-                _logger.LogTrace(1001, "Post Received: payload {0}", payload);
+                Regex r = new Regex(@".*events\/(.*)\/attendees\/(.*)\/", RegexOptions.IgnoreCase );
+                Match m = r.Match(resourceUrl);
+                if(m.Success){
+                    if(m.Groups.Count != 3) return BadRequest();
+                    eventId = m.Groups[1].Value;
+                    attendeeId = m.Groups[2].Value;
+                }
+                else return BadRequest();
+                _logger.LogDebug(1001, "Post Received: payload {0}", payload);
+                _logger.LogInformation(1001, "Received check-{0} notification for attendee {1} and event {2}", isCheckin ? "in" : "out", attendeeId, eventId);
             }
-            return StatusCode(200, new { result =  "success" });
+            var x = StatusCode(200, new { result =  "success", status = "notification pushed" });
+            return x;
         }
 
     }
