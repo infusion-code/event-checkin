@@ -3,6 +3,8 @@ import { UrlTree } from '@angular/router';
 import { ConfigService } from 'ng2-app-scaffold';
 import { UserService } from './userService';
 
+const { version: appVersion } = require('../../../package.json');
+
 @Injectable()
 export class AppConfigService extends ConfigService {
 
@@ -30,7 +32,7 @@ export class AppConfigService extends ConfigService {
         this._showHero = false;
         this._showNotifications = false;
         this._expandCurrentNavOnLoad = false;
-        this._version = "0.0.1";
+        this._version = appVersion;
         
         this._userService.ClientId = this._clientId;
         this._userService.EndPointBase = this._authServiceBase;
