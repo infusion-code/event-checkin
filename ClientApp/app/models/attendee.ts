@@ -15,13 +15,13 @@ export class Attendee{
     public get DetailUrl(): string { return this._detail; }
     public get Email(): string { return this._email; }
     public get ImageUrl(): string { return this._image; }
-    public get NumberOfTickets() : number { return this._numberOfTickets; }
-
+ 
     public get CheckedIn(): boolean { return this._checkedin; }
     public set CheckedIn(val: boolean) { this._checkedin = val; }
     public get UpdateInProgress(): boolean { return this._updateInProgress; }
     public set UpdateInProgress(val: boolean) { this._updateInProgress = val; }
-
+    public get NumberOfTickets() : number { return this._numberOfTickets; }
+    public set NumberOfTickets(val: number) { this._numberOfTickets = val; }
 
     constructor(id: string, name:string, company: string, profileUrl:string, email:string, image?:string, checkedin?: boolean, numberOfTickets?: number ){
         this._id = id;

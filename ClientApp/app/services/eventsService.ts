@@ -30,12 +30,12 @@ export class EventsService  {
         return this.GetEvents();
     }
     
-    public Checkin(eventId: string, attendeeId: string):Observable<boolean>{
-        return this.UpdateCheckinStatus(eventId, attendeeId, 1);
+    public Checkin(eventId: string, attendee: Attendee):Observable<boolean>{
+        return this.UpdateCheckinStatus(eventId, attendee.Id, attendee.NumberOfTickets);
     }
 
-    public Checkout(eventId: string, attendeeId: string):Observable<boolean>{
-        return this.UpdateCheckinStatus(eventId, attendeeId, 0);
+    public Checkout(eventId: string, attendee: Attendee):Observable<boolean>{
+        return this.UpdateCheckinStatus(eventId, attendee.Id, 0);
     }
 
     public GetEvent(id:string): Observable<Event>{
@@ -54,13 +54,21 @@ export class EventsService  {
         if(!this._config.IsAuthenticated) return Observable.of(new Array<Attendee>());
 
         let callAndMap = (page_number) => this.GetAttendeesPage(id, page_number).map(res => { return { page: page_number, data: res.json()}}); 
-        return callAndMap(0)
+        return callAndMap(1)
             .expand(obj => (obj.data.pagination.page_count != obj.data.pagination.page_number  ? callAndMap(obj.page + 1) : Observable.empty()))
             .map(obj => {
                 let u = new Array<Attendee>();
                 obj.data.attendees.forEach(a => {
-                    let att:Attendee = new Attendee(a.id, a.profile.name, a.profile.company, a.profile.url, a.profile.email, a.profile.image, a.checked_in, a.quantity);
-                    u.push(att);
+                    let att:Attendee = null;
+                    if(a.id.indexOf("-") == -1) u.push(new Attendee(a.id, a.profile.name, a.profile.company, a.profile.url, a.profile.email, a.profile.image, a.checked_in, a.quantity));
+                    else{
+                        let id:string = a.id.substr(0, a.id.indexOf("-"));
+                        att = u.find(a => a.Id === id);
+                        if(att) att.NumberOfTickets +=1; 
+                        else {
+                            u.push(new Attendee(id, a.profile.name, a.profile.company, a.profile.url, a.profile.email, a.profile.image, a.checked_in, a.quantity));   
+                        }
+                    }
                 });
                 u.sort((a,b) => { 
                     if (a.Name < b.Name) return -1; 
@@ -112,7 +120,7 @@ export class EventsService  {
     }
 
     private GetAttendeesPage(id: string, page: number): Observable<Response> {
-        let url:string = this._config.ApiEndPointBase +  this._config.FormatString(this._attendeeQuery, id) + (page != null ? this._config.FormatString("?page={0}", page) : "");
+        let url:string = this._config.ApiEndPointBase +  this._config.FormatString(this._attendeeQuery, id) + (page != null && page != 1 ? this._config.FormatString("?page={0}", page) : "");
         let options:RequestOptions = new RequestOptions();
         options.headers = new Headers();
         options.headers.append("Authorization", "Bearer " + this._config.BearerToken);

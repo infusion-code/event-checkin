@@ -70,10 +70,16 @@ export class EventDashboard implements OnInit, OnDestroy {
             this._registeredAttendees = new Array<Attendee>();
             this._events.GetEvent(this._id).subscribe(e => this._event = e);
             this._events.GetCheckedInAttendees(this._id).subscribe(a => { 
-                this._checkedInAttendees = this._checkedInAttendees.concat(a); 
+                this._checkedInAttendees = this._checkedInAttendees.concat(a).sort((a,b) => { 
+                        if (a.Name < b.Name) return -1; 
+                        if (a.Name > b.Name) return 1; 
+                        return 0;}); 
             });
             this._events.GetRegisteredAttendees(this._id).subscribe(a => { 
-                this._registeredAttendees = this._registeredAttendees.concat(a); 
+                this._registeredAttendees = this._registeredAttendees.concat(a).sort((a,b) => { 
+                        if (a.Name < b.Name) return -1; 
+                        if (a.Name > b.Name) return 1; 
+                        return 0;}); 
             });    
         });
     }
@@ -81,11 +87,11 @@ export class EventDashboard implements OnInit, OnDestroy {
 
     public OnCheckin(attendee: Attendee){
         attendee.UpdateInProgress = true;
-        this._events.Checkin(this._event.Id, attendee.Id).subscribe(e => {
+        this._events.Checkin(this._event.Id, attendee).subscribe(e => {
             attendee.CheckedIn = e;
-            if(attendee.CheckedIn){
+            if(attendee.CheckedIn && this._checkedInAttendees.find(a => a.Id === attendee.Id) == null){
                 this._checkedInAttendees.push(attendee);
-                this._checkedInAttendees.sort((a,b) => { 
+                this._checkedInAttendees = this._checkedInAttendees.sort((a,b) => { 
                     if (a.Name < b.Name) return -1; 
                     if (a.Name > b.Name) return 1; 
                     return 0;
@@ -98,11 +104,11 @@ export class EventDashboard implements OnInit, OnDestroy {
 
     public OnCheckout(attendee: Attendee){
         attendee.UpdateInProgress = true;
-        this._events.Checkout(this._event.Id, attendee.Id).subscribe(e => {
+        this._events.Checkout(this._event.Id, attendee).subscribe(e => {
             attendee.CheckedIn = e;
-            if(!attendee.CheckedIn){
+            if(!attendee.CheckedIn && this._registeredAttendees.find(a => a.Id === attendee.Id) == null){
                 this._registeredAttendees.push(attendee);
-                this._registeredAttendees.sort((a,b) => { 
+                this._registeredAttendees = this._registeredAttendees.sort((a,b) => { 
                         if (a.Name < b.Name) return -1; 
                         if (a.Name > b.Name) return 1; 
                         return 0;});
