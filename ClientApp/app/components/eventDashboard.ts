@@ -69,18 +69,18 @@ export class EventDashboard implements OnInit, OnDestroy {
             this._checkedInAttendees = new Array<Attendee>();
             this._registeredAttendees = new Array<Attendee>();
             this._events.GetEvent(this._id).subscribe(e => this._event = e);
-            this._events.GetCheckedInAttendees(this._id).subscribe(a => { 
-                this._checkedInAttendees = this._checkedInAttendees.concat(a).sort((a,b) => { 
-                        if (a.Name < b.Name) return -1; 
-                        if (a.Name > b.Name) return 1; 
-                        return 0;}); 
-            });
             this._events.GetRegisteredAttendees(this._id).subscribe(a => { 
                 this._registeredAttendees = this._registeredAttendees.concat(a).sort((a,b) => { 
                         if (a.Name < b.Name) return -1; 
                         if (a.Name > b.Name) return 1; 
                         return 0;}); 
-            });    
+            }); 
+            this._events.GetCheckedInAttendees(this._id).subscribe(a => { 
+                this._checkedInAttendees = this._checkedInAttendees.concat(a).sort((a,b) => { 
+                        if (a.Name < b.Name) return -1; 
+                        if (a.Name > b.Name) return 1; 
+                        return 0;}); 
+            });   
         });
     }
 

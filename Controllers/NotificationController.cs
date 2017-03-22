@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using Infusion.ServerSentEvents;
+
 
 namespace Infusion.CheckinAndGreeter.Controllers
 {
@@ -13,18 +14,20 @@ namespace Infusion.CheckinAndGreeter.Controllers
     public class NotificationsController : Controller
     {
         private readonly ILogger _logger;
+        private IAttendeeCheckinServerSentEventsService _serverSentEventsService;
 
-        public NotificationsController(ILogger<NotificationsController> logger)
+        public NotificationsController(ILogger<NotificationsController> logger, IAttendeeCheckinServerSentEventsService serverSentEventsService)
         {
             _logger = logger;
+            _serverSentEventsService = serverSentEventsService;
         }
 
         [HttpPost]
-        public IActionResult Notify([FromBody]dynamic value)
+        public async Task<IActionResult> Notify([FromBody]dynamic value)
         {
             if(value == null) return BadRequest();
             if(value.config.action.Value != "barcode.checked_in" && value.config.action.Value != "barcode.un_checked_in") return BadRequest();
-            string payload = Newtonsoft.Json.JsonConvert.SerializeObject(value);
+            string payload = JsonConvert.SerializeObject(value);
             using (_logger.BeginScope("Initiate payload processing: {0}", payload))
             {
                 string resourceUrl = value.api_url.Value;
@@ -42,7 +45,16 @@ namespace Infusion.CheckinAndGreeter.Controllers
                 else return BadRequest();
                 _logger.LogDebug(1001, "Post Received: payload {0}", payload);
                 _logger.LogInformation(1001, "Received check-{0} notification for attendee {1} and event {2}", isCheckin ? "in" : "out", attendeeId, eventId);
+
+                dynamic d = new { attendee = attendeeId, evt = eventId, url = resourceUrl };
+                await _serverSentEventsService.SendEventAsync(new ServerSentEvent(){
+                    Id = attendeeId,
+                    Type = isCheckin ? "checkin" : "checkout",
+                    Data = new List<string>(){ JsonConvert.SerializeObject(d) }
+                    //Data = new List<string>(){ "{", $"\"attendee\": \"{attendeeId}\",",  $"\"event\": \"{eventId}\",", $"\"url\": \"{resourceUrl}\"", "}" }
+                });
             }
+
             var x = StatusCode(200, new { result =  "success", status = "notification pushed" });
             return x;
         }

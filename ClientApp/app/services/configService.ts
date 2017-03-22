@@ -11,6 +11,7 @@ export class AppConfigService extends ConfigService {
     private readonly _clientId = "S543YN2COZYPIISRPP";
     private readonly _authServiceBase = "https://www.eventbrite.com";
     private readonly _apiEndPointBase = "https://www.eventbriteapi.com";
+    private readonly _notificationEndPoint = "/checkin-notifications";
     private _organizerId: string = "9457428809";
     private _pastEventWindow: number = 365;
     private _futuerEventWindow: number = 90; 
@@ -23,6 +24,7 @@ export class AppConfigService extends ConfigService {
     public get OrganizerId(): string {return this._organizerId; }
     public get PastEventWindow(): number { return this._pastEventWindow; }
     public get FutureEventWindow(): number { return this._futuerEventWindow; }
+    public get NotificationEndpoint(): string { return this._notificationEndPoint; }
 
     constructor(private _userService: UserService) {
         super();

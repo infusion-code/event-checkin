@@ -6,6 +6,7 @@ import { AppScaffoldModule, AppComponent, ConfigService, HeroService, CurrentNav
 import { TilesAndCardsModule } from 'ng2-cards-and-tiles';
 import { ActivatedRoute , Router } from '@angular/router';
 
+import { GreeterComponent } from "./components/greeterComponent";
 import { ErrorComponent } from "./components/error";
 import { LoginComponent } from './components/login';
 import { EventDashboard } from './components/eventDashboard';
@@ -17,10 +18,11 @@ import { UserProfileService } from './services/heroService';
 import { EventsService } from './services/eventsService';
 import { CurrentNavService } from './services/currentNavService';
 import { ErrorService } from './services/errorService';
+import { GreeterService } from './services/greeterService';
 
 @NgModule({
     bootstrap: [ AppComponent ],
-    declarations: [ ErrorComponent, LoginComponent, EventDashboard, EventCard, AttendeeCard ],
+    declarations: [ ErrorComponent, LoginComponent, EventDashboard, EventCard, AttendeeCard, GreeterComponent ],
     imports: [
         UniversalModule, // Must be first import. This automatically imports BrowserModule, HttpModule, and JsonpModule too.
         AppScaffoldModule,
@@ -43,7 +45,8 @@ import { ErrorService } from './services/errorService';
             }
         },
         { provide: ConfigService, useExisting: AppConfigService },
-        { provide: CurrentNavProvider, useExisting: CurrentNavService }
+        { provide: CurrentNavProvider, useExisting: CurrentNavService },
+        GreeterService
 
     ]
 })
