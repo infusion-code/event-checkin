@@ -4,10 +4,7 @@ using Microsoft.AspNetCore.SpaServices.Webpack;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.AspNetCore.Http;
 using System;
-using System.Threading.Tasks;
-using Infusion.ServerSentEvents;
 
 namespace Infusion.CheckinAndGreeter
 {
@@ -25,18 +22,21 @@ namespace Infusion.CheckinAndGreeter
 
         public IConfigurationRoot Configuration { get; }
 
+        //
         // This method gets called by the runtime. Use this method to add services to the container.
+        //
         public void ConfigureServices(IServiceCollection services)
         {
             // Add server sent events pocessing
-            //services.AddServerSentEvents();
             services.AddServerSentEvents<IAttendeeCheckinServerSentEventsService, AttendeeCheckinServerSentEventsService>();
 
             // Add framework services.
             services.AddMvc();
         }
 
+        //
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        //
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, IServiceProvider serviceProvider)
         {
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
@@ -55,7 +55,6 @@ namespace Infusion.CheckinAndGreeter
             }
 
             app
-            //  .MapServerSentEvents("/see-heartbeat")
                 .MapServerSentEvents("/checkin-notifications", serviceProvider.GetService<AttendeeCheckinServerSentEventsService>())
                 .UseStaticFiles()
                 .UseMvc(routes =>
@@ -69,17 +68,6 @@ namespace Infusion.CheckinAndGreeter
                         defaults: new { controller = "Home", action = "Index" });
                 });
 
-            // Only for demo purposes, don't do this kind of thing to your production
-            // IServerSentEventsService serverSentEventsService = serviceProvider.GetService<IServerSentEventsService>();
-            // System.Threading.Thread eventsHeartbeatThread = new System.Threading.Thread(new System.Threading.ThreadStart(() =>
-            // {
-            //    while (true)
-            //    {
-            //        serverSentEventsService.SendEventAsync($"Demo.AspNetCore.ServerSentEvents Heartbeat ({DateTime.UtcNow} UTC)").Wait();
-            //        System.Threading.Thread.Sleep(5000);
-            //    }
-            // }));
-            // eventsHeartbeatThread.Start();
         }
     }
 }
