@@ -9,6 +9,10 @@ import { Attendee, AttendeeCollection } from '../models/attendee';
 import 'rxjs/add/operator/catch';
 import 'rxjs/add/operator/map';
 
+interface Dictionary<T>{
+    [key: string]: T;
+}
+
 @Injectable()
 export class EventsService  {
     private readonly _meQuery: string = "/v3/users/me/events/?expand=venue&order_by=start_desc";
@@ -17,7 +21,7 @@ export class EventsService  {
     private readonly _singleAttendeeQuery: string = "/v3/events/{0}/attendees/{1}/";
     private readonly _checkinUrl = "https://www.eventbrite.com/checkin_update?eid={0}&attendee={1}&quantity={2}";
     private _events:Array<Event>;
-
+    private _eventAttendees: Dictionary<Observable<Array<Attendee>>> = {};
 
     constructor(private _config:AppConfigService, private _http: Http) {};
 
@@ -52,9 +56,10 @@ export class EventsService  {
 
     public GetAttendees(id:string): Observable<Array<Attendee>>{
         if(!this._config.IsAuthenticated) return Observable.of(new Array<Attendee>());
+        if(this._eventAttendees[id] != null) return this._eventAttendees[id]; 
 
         let callAndMap = (page_number) => this.GetAttendeesPage(id, page_number).map(res => { return { page: page_number, data: res.json()}}); 
-        return callAndMap(1)
+        let o:Observable<Array<Attendee>> = callAndMap(1)
             .expand(obj => (obj.data.pagination.page_count != obj.data.pagination.page_number  ? callAndMap(obj.page + 1) : Observable.empty()))
             .map(obj => {
                 let u = new Array<Attendee>();
@@ -70,12 +75,15 @@ export class EventsService  {
                         }
                     }
                 });
+                
                 u.sort((a,b) => { 
                     if (a.Name < b.Name) return -1; 
                     if (a.Name > b.Name) return 1; 
                     return 0;});
                 return u; })
-            .catch((e:any) => Observable.throw(e || 'Server Error')); ;
+            .catch((e:any) => Observable.throw(e || 'Server Error')); 
+        this._eventAttendees[id] = o;
+        return o;
     }
 
     public GetCheckedInAttendees(id:string): Observable<Array<Attendee>>{
@@ -192,3 +200,4 @@ export class EventsService  {
         return r.asObservable();
     }
 }
+

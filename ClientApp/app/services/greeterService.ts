@@ -1,6 +1,7 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { Observable, Subscription, Subject } from 'rxjs/Rx';
 import { AppConfigService } from './configService';
+import { EventsService } from './eventsService';
 
 declare class EventSource {
     close: () => void;
@@ -22,7 +23,7 @@ export class GreeterService implements OnDestroy {
         return this._stream.asObservable(); 
     }
 
-    constructor(private _config: AppConfigService) {}
+    constructor(private _config: AppConfigService, private _events: EventsService) {}
 
     private Initialize(){
         if(this._initialized) return;
@@ -40,19 +41,23 @@ export class GreeterService implements OnDestroy {
         this._source.addEventListener("checkin", (event) => {
             console.log('Checkin EVENT: { id: "' + event.lastEventId+ '", data: "' + event.data + '" }');
             let d:any = JSON.parse(event.data);
-            d.type = "checkin";
-            this._stream.next(d);
+            this._events.GetAttendees(d.evt).subscribe(e => {
+                let att = e.find(a => a.Id == d.attendee);
+                this._stream.next({ type: "checkin", attendee: att });
+            });
         });
         this._source.addEventListener("checkout", (event) => {
             console.log('Checkout EVENT: { id: "' + event.lastEventId + '", data: "' + event.data + '" }');
             let d:any = JSON.parse(event.data);
-            d.type = "checkout";
-            this._stream.next(d);
+            this._events.GetAttendees(d.evt).subscribe(e => {
+                let att = e.find(a => a.Id == d.attendee);
+                this._stream.next({ type: "checkout", attendee: att });
+            });
         })
     }
 
     public ngOnDestroy(){
-        this._source.close();
+        if(this._source) this._source.close();
         this._source = null;
         this._initialized = false;
     }

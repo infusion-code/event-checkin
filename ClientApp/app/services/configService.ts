@@ -29,6 +29,7 @@ export class AppConfigService extends ConfigService {
     constructor(private _userService: UserService) {
         super();
         this._title = "Event Checkin";
+        this._storageKey = "Infusion Event Checkin";
         this._faIcon = "fa-calendar-check-o";
         this._showSubscriptions = false;
         this._showHero = false;
@@ -61,3 +62,4 @@ export class AppConfigService extends ConfigService {
     }
 
 }
+

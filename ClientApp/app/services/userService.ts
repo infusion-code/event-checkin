@@ -2,10 +2,12 @@ import { Injectable, OnDestroy } from '@angular/core';
 import { Router, UrlTree } from '@angular/router';
 import { Observable, Subscription, Subject } from 'rxjs/Rx';
 import { Http } from '@angular/http';
+import { SessionStorage } from 'ng2-app-scaffold';
 
 @Injectable()
 export class UserService {
-    private _bearerToken: string = "";
+    @SessionStorage("Infusion Event Checkin", "Token")
+        private _bearerToken: string = "";
     private _clientId: string = "";
     private _serviceRoot: string = "";
     private _loginTimerSubscription: Subscription = null;
@@ -51,12 +53,14 @@ export class UserService {
             return this.Login(redirectAfterSuccessUrl);        
         }
         else {
+           if(!this._isAuthenticated) {
+               this._isAuthenticated = true;
+               this.ChangeAutenticationState(this._isAuthenticated);
+           }
            if(redirectAfterSuccessUrl) this._router.navigateByUrl(redirectAfterSuccessUrl); 
            return this._bearerToken;
         }    
     }
-
-
 
     public ngOnDestroy(){  }
 
@@ -68,7 +72,7 @@ export class UserService {
         if(val != null && val != "") val.replace(r, (a:string ,b: string,c: string,d: string) => { x[b] = d; return x[b]; } )
         if(x['token_type'] == null || x['token_type'] != 'Bearer' || x['access_token'] == null){
             if(timer == null){
-                timer = Observable.timer(2000);
+                timer = Observable.timer(200);
                 this._loginTimerSubscription = timer.subscribe(t => { this.RedirectToOAuthEndPoint(t); });
             }
         }

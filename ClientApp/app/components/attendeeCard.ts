@@ -26,7 +26,7 @@ import { EventsService } from '../services/eventsService';
         .profile-img { padding: 0px; margin: 0px; background-position: center; background-size: cover; background-repeat: no-repeat; }
         .green { background-color: #0d6f2b }
         .red { background-color: #df6868 }
-        .checkin { display: flex; align-items: center; justify-content: center; }
+        .checkin { display: flex; align-items: center; justify-content: center; cursor: pointer }
         .checkin .icon { font-size: 4rem; }
     `]
 })

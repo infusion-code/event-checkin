@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { DomSanitizer, SafeUrl} from '@angular/platform-browser';
-import { ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs/Subscription';
 import { Event } from '../models/event'
 import { Attendee } from '../models/attendee'
@@ -12,7 +12,7 @@ import { EventsService } from '../services/eventsService';
     template: `
         <ng-container *ngIf="_config.IsAuthenticated">
             <div class="side-body padding-top">
-                <event-card [Event]="Event"></event-card>
+                <event-card [Event]="Event" (Launch)="OnEventLaunch($event)"></event-card>
                 <div class="attendeeSection">
                     <ng-container *ngIf="RegisteredAttendees != null && RegisteredAttendees.length > 0">
                         <a class="sectionheader" data-toggle="collapse" href="#registered_section"><h4>Registered Attendees</h4><span class="icon fa"></span></a>
@@ -59,10 +59,10 @@ export class EventDashboard implements OnInit, OnDestroy {
     public get RegisteredAttendees(): Array<Attendee> { return this._registeredAttendees; }
     private get IFrameUrl():SafeUrl { return this._iframeUrl; } 
 
-    constructor(private _route: ActivatedRoute, private _config: AppConfigService, private _events: EventsService, private _sanitizer: DomSanitizer) { }
+    constructor(private _router: Router, private _route: ActivatedRoute, private _config: AppConfigService, private _events: EventsService, private _sanitizer: DomSanitizer) { }
 
     public ngOnInit() {
-        if(!this._config.IsAuthenticated && this._config.Authenticate(this._route.snapshot.url.toString()) == false) return;
+        if(!this._config.IsAuthenticated && this._config.Authenticate(document ? document.location.pathname : "") == false) return;
         this._parameterSubscription = this._route.params.subscribe(params => {
             this._id = params['id'];
             this._name = params['name'];
@@ -116,6 +116,10 @@ export class EventDashboard implements OnInit, OnDestroy {
             }
             attendee.UpdateInProgress = false;
         });
+    }
+
+    public OnEventLaunch(){
+        this._router.navigateByUrl("/greeter/" + this._event.Id);
     }
 
     public ngOnDestroy() {

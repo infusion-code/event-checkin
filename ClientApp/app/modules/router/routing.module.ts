@@ -11,6 +11,7 @@ export const routes: Routes = [
     { path: 'events/:id/:name', component: EventDashboard, data: { breadcrumb: 'Event' } },
     { path: 'error', component: ErrorComponent, data: { breadcrumb: 'Error' } },
     { path: 'greeter', component: GreeterComponent, data: { breadcrumb: 'Welcome to Infusion' } },
+    { path: 'greeter/:id', component: GreeterComponent, data: { breadcrumb: 'Welcome to Infusion' } },
     { path: '**', redirectTo: 'error' }
 ];
 

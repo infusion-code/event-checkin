@@ -51,7 +51,6 @@ namespace Infusion.CheckinAndGreeter.Controllers
                     Id = attendeeId,
                     Type = isCheckin ? "checkin" : "checkout",
                     Data = new List<string>(){ JsonConvert.SerializeObject(d) }
-                    //Data = new List<string>(){ "{", $"\"attendee\": \"{attendeeId}\",",  $"\"event\": \"{eventId}\",", $"\"url\": \"{resourceUrl}\"", "}" }
                 });
             }
 
