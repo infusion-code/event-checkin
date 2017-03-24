@@ -27,7 +27,8 @@ import { EventsService } from '../services/eventsService';
                 <h2>Notice Stream</h2>
                 <div *ngFor="let notice of Notices" class="row">
                     <div class="col text-left input-group-addon" [ngClass]="{'green' : notice.type == 'checkin', 'red': notice.type == 'checkout'}">                   
-                        <span *ngIf="notice.type == 'checkin' || notice.type == 'checkout'">{{notice.type}} of attendee {{notice.attendee}} for event {{notice.evt}}.</span>
+                        <span *ngIf="notice.type == 'checkin'">{{notice.attendee.Name}} just arrived at the event. Say Hi and get to know {{notice.attendee.Name}}.</span>
+                        <span *ngIf="notice.type == 'checkout'">{{notice.attendee.Name}} has just left.</span>
                         <span *ngIf="notice.type != 'checkin' && notice.type != 'checkout'">{{notice.type}}</span>
                     </div>
                 </div>
@@ -75,10 +76,7 @@ export class GreeterComponent implements OnInit, OnDestroy {
     public ngOnInit() {
         if(!this._config.IsAuthenticated && this._config.Authenticate(document ? document.location.pathname : "") == false) return;
         this._greeter.Notifications.subscribe(s => {
-            let a:Attendee = s.attendee;
-            if(s.type == "checkin") this._notices.push(this._config.FormatString("{{Name}} has just arrived at the event...", a.Name));
-            else if(s.type == "checkout") this._notices.push(this._config.FormatString("{{Name}} has just left the event...", a.Name));
-            else this._notices.push(s);
+            this._notices.push(s);
             this._change.detectChanges();
         });
 
