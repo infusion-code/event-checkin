@@ -16,22 +16,16 @@ import { EventsService } from '../services/eventsService';
             <ng-container *ngIf="Event != null">
                 <div class="eventInfoOverlay">
                     <div class="title"><span [innerHTML]='Event.NameAsHtml'></span><a class="expandToggle" data-toggle="collapse" href="#event-description"></a></div>
-                    <div id="event-description" class="description collapse in" [innerHTML]='Event.DescriptionAsHtml'></div>
+                    <div class="description collapse in" [innerHTML]='Event.DescriptionAsHtml'></div>
                 </div>
                 <div class="eventInfo">
                     <div class="title"><span [innerHTML]='Event.NameAsHtml'></span><a class="expandToggle" data-toggle="collapse" href="#event-description"></a></div>
                     <div id="event-description" class="description collapse in" [innerHTML]='Event.DescriptionAsHtml'></div>
                 </div>
             </ng-container>
-            <div style="padding: 0px 20px 10px 20px; position: relative;">
-                <h2>Notice Stream</h2>
-                <div *ngFor="let notice of Notices" class="row">
-                    <div class="col text-left input-group-addon" [ngClass]="{'green' : notice.type == 'checkin', 'red': notice.type == 'checkout'}">                   
-                        <span *ngIf="notice.type == 'checkin'">{{notice.attendee.Name}} just arrived at the event. Say Hi and get to know {{notice.attendee.Name}}.</span>
-                        <span *ngIf="notice.type == 'checkout'">{{notice.attendee.Name}} has just left.</span>
-                        <span *ngIf="notice.type != 'checkin' && notice.type != 'checkout'">{{notice.type}}</span>
-                    </div>
-                </div>
+            <div class="greeting" *ngIf="Notices.length > 0" [ngClass]="{'green': Notices[0].type=='checkin', 'red': Notices[0].type=='checkout'}" >
+                <span *ngIf="Notices[0].type == 'checkin'">{{Notices[0].attendee.Name}} has just arrived. Say 'Hi' and get to know {{Notices[0].attendee.Name.split(" ")[0]}}.</span>
+                <span *ngIf="Notices[0].type == 'checkout'">{{Notices[0].attendee.Name}} has just left. Thanks for coming and see you again soon.</span>
             </div>
         </div>
     `,
@@ -47,11 +41,9 @@ import { EventsService } from '../services/eventsService';
         .eventInfoOverlay { position: absolute; background-color: black; opacity: 0.3; }
         .eventInfoOverlay * { visibility: hidden; }
         .overlay { width: 100%; height: 100%; background-color: black; opacity: 0.6; position: absolute; }
-        .row { margin-bottom: 10px; margin-left: 5px;  }
-        .row > .col { text-align: left; white-space: normal; padding: 10px; background-color: #666; color: white }
-        .row > .col.red { background-color: #df6868 }
-        .row > .col.green { background-color: #0d6f2b }
-        h2 { padding-bottom: 15px; }
+        .greeting { position: absolute; top: 10rem; left: 10rem; bottom: 10rem; right: 10rem; padding: 9rem; text-align: center; display: flex; align-items: center; font-size: 6rem; line-height: 12rem; }
+        .green { background-color: #0d6f2b }
+        .red { background-color: #df6868 }
     `]
 })
 export class GreeterComponent implements OnInit, OnDestroy {
@@ -59,6 +51,8 @@ export class GreeterComponent implements OnInit, OnDestroy {
     private _parameterSubscription: Subscription = null;
     private _event: Event = null;
     private _id: string;
+    private _timer: Observable<number> = Observable.interval(15000);
+    private _timerSubscription: Subscription = null;
     public get Notices(): Array<String> { return this._notices; }
     public get Event():Event { return this._event; }
 
@@ -76,8 +70,20 @@ export class GreeterComponent implements OnInit, OnDestroy {
     public ngOnInit() {
         if(!this._config.IsAuthenticated && this._config.Authenticate(document ? document.location.pathname : "") == false) return;
         this._greeter.Notifications.subscribe(s => {
-            this._notices.push(s);
-            this._change.detectChanges();
+            if(s.type == "checkin" || s.type == "checkout") {
+                this._notices.push(s);
+                if(this._timerSubscription == null){
+                    this._timerSubscription = this._timer.subscribe(t => { 
+                        this._notices.splice(0, 1 )
+                        if(this._notices.length == 0) {
+                            this._timerSubscription.unsubscribe();
+                            this._timerSubscription = null;
+                        }
+                        this._change.detectChanges();
+                    });
+                    this._change.detectChanges();
+                };
+            }
         });
 
         // determine if we have an event from the route...
@@ -91,6 +97,7 @@ export class GreeterComponent implements OnInit, OnDestroy {
 
     public ngOnDestroy(){
         if(this._parameterSubscription)  this._parameterSubscription.unsubscribe();
+        if(this._timerSubscription) this._timerSubscription.unsubscribe();
     }
 
 }
