@@ -16,7 +16,7 @@ namespace Infusion.ServerSentEvents
         #endregion
 
         #region Constructor
-        internal ServerSentEventsClient(HttpResponse response, ILogger _logger)
+        internal ServerSentEventsClient(HttpResponse response, ILogger logger)
         {
             if (response == null)
             {
@@ -24,6 +24,7 @@ namespace Infusion.ServerSentEvents
             }
 
             _response = response;
+            _logger = logger;
         }
         #endregion
 

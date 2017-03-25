@@ -14,7 +14,7 @@ namespace Microsoft.AspNetCore.Http
             logger.LogDebug(1099, "SSE Start retry interval");
             await response.WriteSseEventFieldAsync(Constants.SSE_RETRY_FIELD, reconnectInterval.ToString(CultureInfo.InvariantCulture), logger);
             await response.WriteSseEventBoundaryAsync();
-            await response.Body.FlushAsync();
+            //await response.Body.FlushAsync();
             logger.LogDebug(1099, "SSE Complete retry interval");
         }
 
@@ -22,7 +22,7 @@ namespace Microsoft.AspNetCore.Http
         {
             await response.WriteSseEventFieldAsync(Constants.SSE_DATA_FIELD, text, logger);
             await response.WriteSseEventBoundaryAsync();
-            await response.Body.FlushAsync();
+            //await response.Body.FlushAsync();
             logger.LogDebug(1099, "SSE Async write complete");
         }
 
@@ -50,7 +50,7 @@ namespace Microsoft.AspNetCore.Http
             }
 
             await response.WriteSseEventBoundaryAsync();
-            await response.Body.FlushAsync();
+            //await response.Body.FlushAsync();
             logger.LogDebug(1099, "SSE Async write complete");
         }
 

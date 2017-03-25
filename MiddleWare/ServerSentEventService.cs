@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
+using Microsoft.Extensions.Logging;
 
 namespace Infusion.ServerSentEvents
 {
@@ -12,6 +13,7 @@ namespace Infusion.ServerSentEvents
     {
         #region Fields
         private readonly ConcurrentDictionary<Guid, ServerSentEventsClient> _clients = new ConcurrentDictionary<Guid, ServerSentEventsClient>();
+        private readonly ILogger _logger;
         #endregion
 
         #region Properties
@@ -20,6 +22,10 @@ namespace Infusion.ServerSentEvents
         /// </summary>
         public uint? ReconnectInterval { get; private set; }
         #endregion
+
+        public ServerSentEventsService(ILogger<IServerSentEventsService> logger){
+            _logger = logger;
+        }
 
         #region Methods
         /// <summary>
@@ -41,6 +47,7 @@ namespace Infusion.ServerSentEvents
         /// <returns>The task object representing the asynchronous operation.</returns>
         public Task SendEventAsync(string text)
         {
+            _logger.LogDebug(1100, "SSE initiating send for all clients with data '{0}'", text);
             return ForAllClientsAsync(client => client.SendEventAsync(text));
         }
 
@@ -51,6 +58,7 @@ namespace Infusion.ServerSentEvents
         /// <returns>The task object representing the asynchronous operation.</returns>
         public Task SendEventAsync(ServerSentEvent serverSentEvent)
         {
+            _logger.LogDebug(1100, "SSE initiating send for all clients with data '{0}'", serverSentEvent.ToString());
             return ForAllClientsAsync(client => client.SendEventAsync(serverSentEvent));
         }
 
@@ -62,6 +70,7 @@ namespace Infusion.ServerSentEvents
         /// <returns>The task object representing the asynchronous operation.</returns>
         public virtual Task OnReconnectAsync(IServerSentEventsClient client, string lastEventId)
         {
+            _logger.LogDebug(1100, "SSE client reconnect");
             return System.Threading.TaskHelper.GetCompletedTask();
         }
  
@@ -69,6 +78,7 @@ namespace Infusion.ServerSentEvents
         {
             Guid clientId = Guid.NewGuid();
             _clients.TryAdd(clientId, client);
+            _logger.LogDebug(1100, "SSE added client with id '{0}'. '{1}' clients are registered.", clientId, _clients.Count);
             return clientId;
         }
 
@@ -76,6 +86,7 @@ namespace Infusion.ServerSentEvents
         {
             ServerSentEventsClient client;
             _clients.TryRemove(clientId, out client);
+            if(client != null) _logger.LogDebug(1100, "SSE removed client with id '{0}'. '{1}' clients are registered.", clientId, _clients.Count);
         }
 
         private Task ForAllClientsAsync(Func<ServerSentEventsClient, Task> clientOperationAsync)

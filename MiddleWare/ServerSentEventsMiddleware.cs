@@ -54,7 +54,7 @@ namespace Infusion.ServerSentEvents
             {
                 _logger.LogDebug(1100, "New SSE Request from '{0}'", context.Connection.RemoteIpAddress);
                 context.Response.ContentType = Constants.SSE_CONTENT_TYPE;
-                await context.Response.Body.FlushAsync();
+                //await context.Response.Body.FlushAsync();
                 _logger.LogDebug(1100, "SSE sent content type to '{0}'", context.Connection.RemoteIpAddress);
 
                 ServerSentEventsClient client = new ServerSentEventsClient(context.Response, _logger);
