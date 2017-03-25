@@ -15,11 +15,11 @@ import { EventsService } from '../services/eventsService';
             <div class="exit" (click)="ExitGreeter()"><span class="icon fa fa-arrow-circle-o-left"></span></div>
             <ng-container *ngIf="Event != null">
                 <div class="eventInfoOverlay">
-                    <div class="title"><span [innerHTML]='Event.NameAsHtml'></span><a class="expandToggle" data-toggle="collapse" href="#event-description"></a></div>
+                    <div class="title"><span [innerHTML]='Event.NameAsHtml'></span><a class="expandToggle" data-toggle="collapse" href=".description"></a></div>
                     <div class="description collapse in" [innerHTML]='Event.DescriptionAsHtml'></div>
                 </div>
                 <div class="eventInfo">
-                    <div class="title"><span [innerHTML]='Event.NameAsHtml'></span><a class="expandToggle" data-toggle="collapse" href="#event-description"></a></div>
+                    <div class="title"><span [innerHTML]='Event.NameAsHtml'></span><a class="expandToggle" data-toggle="collapse" href=".description"></a></div>
                     <div id="event-description" class="description collapse in" [innerHTML]='Event.DescriptionAsHtml'></div>
                 </div>
             </ng-container>
@@ -38,7 +38,7 @@ import { EventsService } from '../services/eventsService';
         .expandToggle.collapsed:after { font-family: FontAwesome; content: "\\f107" }
         .exit { position: relative; z-index: 10; float: right; font-size: 3.5rem; padding: 15px 25px }
         .eventInfo { position: relative; }
-        .eventInfoOverlay { position: absolute; background-color: black; opacity: 0.3; }
+        .eventInfoOverlay { position: absolute; background-color: black; opacity: 0.3; left: 0px; right: 0px; }
         .eventInfoOverlay * { visibility: hidden; }
         .overlay { width: 100%; height: 100%; background-color: black; opacity: 0.6; position: absolute; }
         .greeting { position: absolute; top: 10rem; left: 10rem; bottom: 10rem; right: 10rem; padding: 9rem; text-align: center; display: flex; align-items: center; font-size: 6rem; line-height: 12rem; }
