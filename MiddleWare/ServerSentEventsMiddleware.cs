@@ -57,7 +57,7 @@ namespace Infusion.ServerSentEvents
                 await context.Response.Body.FlushAsync();
                 _logger.LogDebug(1100, "SSE sent content type to '{0}'", context.Connection.RemoteIpAddress);
 
-                ServerSentEventsClient client = new ServerSentEventsClient(context.Response);
+                ServerSentEventsClient client = new ServerSentEventsClient(context.Response, _logger);
 
                 if (_serverSentEventsService.ReconnectInterval.HasValue)
                 {

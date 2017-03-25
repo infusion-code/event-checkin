@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 
 namespace Infusion.ServerSentEvents
 {
@@ -11,10 +12,11 @@ namespace Infusion.ServerSentEvents
     {
         #region Fields
         private readonly HttpResponse _response;
+        private readonly ILogger _logger;
         #endregion
 
         #region Constructor
-        internal ServerSentEventsClient(HttpResponse response)
+        internal ServerSentEventsClient(HttpResponse response, ILogger _logger)
         {
             if (response == null)
             {
@@ -33,7 +35,8 @@ namespace Infusion.ServerSentEvents
         /// <returns>The task object representing the asynchronous operation.</returns>
         public Task SendEventAsync(string text)
         {
-            return _response.WriteSseEventAsync(text);
+            _logger.LogDebug(1101, "Send SSE data '{0}' to '{1}'", text, _response.HttpContext.Connection.RemoteIpAddress);
+            return _response.WriteSseEventAsync(text, _logger);
         }
 
         /// <summary>
@@ -43,12 +46,14 @@ namespace Infusion.ServerSentEvents
         /// <returns>The task object representing the asynchronous operation.</returns>
         public Task SendEventAsync(ServerSentEvent serverSentEvent)
         {
-            return _response.WriteSseEventAsync(serverSentEvent);
+            _logger.LogDebug(1101, "Send SSE event '{0}' to '{1}'", serverSentEvent.ToString(), _response.HttpContext.Connection.RemoteIpAddress);
+            return _response.WriteSseEventAsync(serverSentEvent, _logger);
         }
 
         internal Task ChangeReconnectIntervalAsync(uint reconnectInterval)
         {
-            return _response.WriteSseRetryAsync(reconnectInterval);
+            _logger.LogDebug(1101, "Send SSE reconnect interval '{0}' to '{1}'", reconnectInterval, _response.HttpContext.Connection.RemoteIpAddress);
+            return _response.WriteSseRetryAsync(reconnectInterval, _logger);
         }
         #endregion
     }

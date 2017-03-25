@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace Infusion.ServerSentEvents
 {
@@ -23,5 +24,9 @@ namespace Infusion.ServerSentEvents
         /// </summary>
         public IList<string> Data { get; set; }
         #endregion
+
+        public override string ToString(){
+            return JsonConvert.ToString(this);
+        }
     }
 }
