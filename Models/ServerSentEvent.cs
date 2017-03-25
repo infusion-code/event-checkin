@@ -26,7 +26,7 @@ namespace Infusion.ServerSentEvents
         #endregion
 
         public override string ToString(){
-            return JsonConvert.ToString(this);
+            return JsonConvert.SerializeObject(this);
         }
     }
 }
