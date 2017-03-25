@@ -10,9 +10,11 @@ namespace Microsoft.AspNetCore.Http
 
         internal static async Task WriteSseRetryAsync(this HttpResponse response, uint reconnectInterval)
         {
+            _logger.LogDebug(1099, "SSE Start retry interval");
             await response.WriteSseEventFieldAsync(Constants.SSE_RETRY_FIELD, reconnectInterval.ToString(CultureInfo.InvariantCulture));
             await response.WriteSseEventBoundaryAsync();
             response.Body.Flush();
+            _logger.LogDebug(1099, "SSE Complete retry interval");
         }
 
         internal static async Task WriteSseEventAsync(this HttpResponse response, string text)
@@ -20,6 +22,7 @@ namespace Microsoft.AspNetCore.Http
             await response.WriteSseEventFieldAsync(Constants.SSE_DATA_FIELD, text);
             await response.WriteSseEventBoundaryAsync();
             response.Body.Flush();
+            _logger.LogDebug(1099, "SSE Async write complete");
         }
 
         internal static async Task WriteSseEventAsync(this HttpResponse response, ServerSentEvent serverSentEvent)
@@ -44,10 +47,12 @@ namespace Microsoft.AspNetCore.Http
 
             await response.WriteSseEventBoundaryAsync();
             response.Body.Flush();
+            _logger.LogDebug(1099, "SSE Async write complete");
         }
 
         private static Task WriteSseEventFieldAsync(this HttpResponse response, string field, string data)
         {
+            _logger.LogDebug(1099, "SSE Start Async write with field '{0}', data '{1}'", field, data);
             return response.WriteAsync($"{field}: {data}\n");
         }
 
