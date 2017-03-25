@@ -42,6 +42,7 @@ namespace Infusion.CheckinAndGreeter.Controllers
                     attendeeId = m.Groups[2].Value;
                 }
                 else return BadRequest();
+                
                 _logger.LogDebug(1001, "Post Received: payload {0}", payload);
                 _logger.LogInformation(1001, "Received check-{0} notification for attendee {1} and event {2}", isCheckin ? "in" : "out", attendeeId, eventId);
 

@@ -81,9 +81,15 @@ namespace Infusion.CheckinAndGreeter
 
                 {
 
-                    serverSentEventsService.SendEventAsync($"Demo.AspNetCore.ServerSentEvents Heartbeat ({DateTime.UtcNow} UTC)").Wait();
+                    //serverSentEventsService.SendEventAsync($"Demo.AspNetCore.ServerSentEvents Heartbeat ({DateTime.UtcNow} UTC)").Wait();
+                    dynamic d = new { attendee = "763377271", evt = "32967492658", url = "https://www.eventbriteapi.com/v3/events/32967492658/attendees/763377271/" };
+                    serverSentEventsService.SendEventAsync(new ServerSentEvent(){
+                        Id = "763377271",
+                        Type = "checkin",
+                        Data = new System.Collections.Generic.List<string>(){ Newtonsoft.Json.JsonConvert.SerializeObject(d) }
+                    });
 
-                    System.Threading.Thread.Sleep(5000);
+                    System.Threading.Thread.Sleep(30000);
 
                 }
 
