@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
+using Infusion.ServerSentEvents;
 
 namespace Infusion.CheckinAndGreeter
 {
@@ -28,7 +29,8 @@ namespace Infusion.CheckinAndGreeter
         public void ConfigureServices(IServiceCollection services)
         {
             // Add server sent events pocessing
-            services.AddServerSentEvents<IAttendeeCheckinServerSentEventsService, AttendeeCheckinServerSentEventsService>();
+            //services.AddServerSentEvents<IAttendeeCheckinServerSentEventsService, AttendeeCheckinServerSentEventsService>();
+            services.AddServerSentEvents();
 
             // Add framework services.
             services.AddMvc();
@@ -55,7 +57,8 @@ namespace Infusion.CheckinAndGreeter
             }
 
             app
-                .MapServerSentEvents("/checkin-notifications", serviceProvider.GetService<AttendeeCheckinServerSentEventsService>())
+                //.MapServerSentEvents("/checkin-notifications", serviceProvider.GetService<AttendeeCheckinServerSentEventsService>())
+                .MapServerSentEvents("/checkin-notifications")
                 .UseStaticFiles()
                 .UseMvc(routes =>
                 {
@@ -67,6 +70,25 @@ namespace Infusion.CheckinAndGreeter
                         name: "spa-fallback",
                         defaults: new { controller = "Home", action = "Index" });
                 });
+
+
+            // Only for demo purposes, don't do this kind of thing to your production
+            IServerSentEventsService serverSentEventsService = serviceProvider.GetService<IServerSentEventsService>();
+            System.Threading.Thread eventsHeartbeatThread = new System.Threading.Thread(new System.Threading.ThreadStart(() =>
+            {
+
+                while (true)
+
+                {
+
+                    serverSentEventsService.SendEventAsync($"Demo.AspNetCore.ServerSentEvents Heartbeat ({DateTime.UtcNow} UTC)").Wait();
+
+                    System.Threading.Thread.Sleep(5000);
+
+                }
+
+            }));
+            eventsHeartbeatThread.Start();
 
         }
     }
