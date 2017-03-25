@@ -38,6 +38,7 @@ namespace Infusion.ServerSentEvents
 
             _next = next;
             _serverSentEventsService = serverSentEventsService;
+            _logger = logger;
         }
         #endregion
 
