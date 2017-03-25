@@ -54,7 +54,7 @@ namespace Infusion.ServerSentEvents
             {
                 _logger.LogDebug(1100, "New SSE Request from '{0}'", context.Connection.RemoteIpAddress);
                 context.Response.ContentType = Constants.SSE_CONTENT_TYPE;
-                context.Response.Body.Flush();
+                await context.Response.Body.FlushAsync();
                 _logger.LogDebug(1100, "SSE sent content type to '{0}'", context.Connection.RemoteIpAddress);
 
                 ServerSentEventsClient client = new ServerSentEventsClient(context.Response);
@@ -69,16 +69,17 @@ namespace Infusion.ServerSentEvents
                 if (!String.IsNullOrWhiteSpace(lastEventId))
                 {
                     await _serverSentEventsService.OnReconnectAsync(client, lastEventId);
+                     _logger.LogDebug(1100, "SSE rconnected client for serving request from '{0}'", context.Connection.RemoteIpAddress);
                 }
 
                 Guid clientId = _serverSentEventsService.AddClient(client);
-                _logger.LogDebug(1100, "SSE added client with id '{1}' to service serving request from '{0}'", context.Connection.RemoteIpAddress, clientId);
+                _logger.LogDebug(1100, "SSE added client with id '{0}' to service serving request from '{1}'", clientId, context.Connection.RemoteIpAddress);
 
                 await context.RequestAborted.WaitAsync();
-                _logger.LogDebug(1100, "SSE Received abort request for client with id {1} to service serving request from '{0}'", context.Connection.RemoteIpAddress, clientId);
+                _logger.LogDebug(1100, "SSE Received abort request for client with id '{0}' to service serving request from '{1}'", clientId, context.Connection.RemoteIpAddress);
 
                 _serverSentEventsService.RemoveClient(clientId);
-                _logger.LogDebug(1100, "SSE remove client with id {1} to service serving request from '{0}'", context.Connection.RemoteIpAddress, clientId);
+                _logger.LogDebug(1100, "SSE remove client with id '{0} 'to service serving request from '{1}'", clientId, context.Connection.RemoteIpAddress);
             }
             else
             {
