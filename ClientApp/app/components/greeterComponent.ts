@@ -98,6 +98,7 @@ export class GreeterComponent implements OnInit, OnDestroy {
     public ngOnDestroy(){
         if(this._parameterSubscription)  this._parameterSubscription.unsubscribe();
         if(this._timerSubscription) this._timerSubscription.unsubscribe();
+        this._greeter.CloseSSEChannel();
     }
 
 }

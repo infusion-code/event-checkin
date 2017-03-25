@@ -34,7 +34,7 @@ export class GreeterService implements OnDestroy {
         this._source.onmessage = (event) => {
             console.log('SSE EVENT: { id: "' + event.lastEventId + '", data: "' + event.data + '" }');
             this._stream.next(event.data);
-            if (event.lastEventId == "close") this.ngOnDestroy(); 
+            if (event.lastEventId == "close") this.CloseSSEChannel(); 
         }
         this._initialized = true;
 
@@ -54,6 +54,10 @@ export class GreeterService implements OnDestroy {
                 this._stream.next({ type: "checkout", attendee: att });
             });
         })
+    }
+
+    public CloseSSEChannel(){
+        this.ngOnDestroy();
     }
 
     public ngOnDestroy(){
