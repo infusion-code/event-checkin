@@ -7,7 +7,7 @@ namespace Infusion.CheckinAndGreeter
     {
         public AttendeeCheckinServerSentEventsService(ILogger<IServerSentEventsService> logger) : base(logger)
         {
-            //ChangeReconnectIntervalAsync(1000);
+            ChangeReconnectIntervalAsync(1000);
         }
     }
 }

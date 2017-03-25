@@ -15,7 +15,6 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IServiceCollection AddServerSentEvents(this IServiceCollection services)
         {
             services.AddServerSentEvents<IServerSentEventsService, ServerSentEventsService>();
-
             return services;
         }
 

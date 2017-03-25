@@ -36,7 +36,6 @@ namespace Infusion.ServerSentEvents
         public Task ChangeReconnectIntervalAsync(uint reconnectInterval)
         {
             ReconnectInterval = reconnectInterval;
-
             return ForAllClientsAsync(client => client.ChangeReconnectIntervalAsync(reconnectInterval));
         }
 
