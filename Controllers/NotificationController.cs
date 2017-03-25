@@ -47,11 +47,13 @@ namespace Infusion.CheckinAndGreeter.Controllers
                 _logger.LogInformation(1001, "Received check-{0} notification for attendee {1} and event {2}", isCheckin ? "in" : "out", attendeeId, eventId);
 
                 dynamic d = new { attendee = attendeeId, evt = eventId, url = resourceUrl };
+                _logger.LogDebug(1001, "Preparing to send SSE");
                 await _serverSentEventsService.SendEventAsync(new ServerSentEvent(){
                     Id = attendeeId,
                     Type = isCheckin ? "checkin" : "checkout",
                     Data = new List<string>(){ JsonConvert.SerializeObject(d) }
                 });
+                _logger.LogDebug(1001, "SSE Sent");
             }
 
             var x = StatusCode(200, new { result =  "success", status = "notification pushed" });
