@@ -6,7 +6,7 @@ namespace Infusion.CheckinAndGreeter
     {
         public AttendeeCheckinServerSentEventsService()
         {
-            ChangeReconnectIntervalAsync(1000);
+            //ChangeReconnectIntervalAsync(1000);
         }
     }
 }
