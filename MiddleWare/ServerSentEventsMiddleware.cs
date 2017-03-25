@@ -51,10 +51,10 @@ namespace Infusion.ServerSentEvents
         {
             if (context.Request.Headers[Constants.ACCEPT_HTTP_HEADER] == Constants.SSE_CONTENT_TYPE)
             {
-                _logger.LogDebug(1100, "New SSE Request from '{0}' on session '{1}'", context.Connection.RemoteIpAddress, context.Session.Id);
+                _logger.LogDebug(1100, "New SSE Request from '{0}'", context.Connection.RemoteIpAddress);
                 context.Response.ContentType = Constants.SSE_CONTENT_TYPE;
                 context.Response.Body.Flush();
-                _logger.LogDebug(1100, "SSE sent content type to '{0}' on session '{1}'", context.Connection.RemoteIpAddress, context.Session.Id);
+                _logger.LogDebug(1100, "SSE sent content type to '{0}'", context.Connection.RemoteIpAddress);
 
                 ServerSentEventsClient client = new ServerSentEventsClient(context.Response);
 
@@ -62,7 +62,7 @@ namespace Infusion.ServerSentEvents
                 {
                     await client.ChangeReconnectIntervalAsync(_serverSentEventsService.ReconnectInterval.Value);
                 }
-                _logger.LogDebug(1100, "SSE setup new client for request from '{0}' on session '{1}'", context.Connection.RemoteIpAddress, context.Session.Id);
+                _logger.LogDebug(1100, "SSE setup new client for request from '{0}'", context.Connection.RemoteIpAddress);
 
                 string lastEventId = context.Request.Headers[Constants.LAST_EVENT_ID_HTTP_HEADER];
                 if (!String.IsNullOrWhiteSpace(lastEventId))
@@ -71,13 +71,13 @@ namespace Infusion.ServerSentEvents
                 }
 
                 Guid clientId = _serverSentEventsService.AddClient(client);
-                _logger.LogDebug(1100, "SSE added client with id {3} to service serving request from '{0}' on session '{1}'", context.Connection.RemoteIpAddress, context.Session.Id, clientId);
+                _logger.LogDebug(1100, "SSE added client with id '{1}' to service serving request from '{0}'", context.Connection.RemoteIpAddress, clientId);
 
                 await context.RequestAborted.WaitAsync();
-                _logger.LogDebug(1100, "SSE Received abort request for client with id {3} to service serving request from '{0}' on session '{1}'", context.Connection.RemoteIpAddress, context.Session.Id, clientId);
+                _logger.LogDebug(1100, "SSE Received abort request for client with id {1} to service serving request from '{0}'", context.Connection.RemoteIpAddress, clientId);
 
                 _serverSentEventsService.RemoveClient(clientId);
-                _logger.LogDebug(1100, "SSE remove client with id {3} to service serving request from '{0}' on session '{1}'", context.Connection.RemoteIpAddress, context.Session.Id, clientId);
+                _logger.LogDebug(1100, "SSE remove client with id {1} to service serving request from '{0}'", context.Connection.RemoteIpAddress, clientId);
             }
             else
             {
