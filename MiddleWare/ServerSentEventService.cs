@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
@@ -13,6 +14,8 @@ namespace Infusion.ServerSentEvents
     {
         #region Fields
         private readonly ConcurrentDictionary<Guid, ServerSentEventsClient> _clients = new ConcurrentDictionary<Guid, ServerSentEventsClient>();
+        private Task _heartbeat = null;
+        private CancellationTokenSource _hearbeatCancellation = null;
         private readonly ILogger _logger;
         #endregion
 
@@ -21,10 +24,15 @@ namespace Infusion.ServerSentEvents
         /// Gets the interval after which clients will attempt to reestablish failed connections.
         /// </summary>
         public uint? ReconnectInterval { get; private set; }
+
+        public bool UseHeartbeat { get; set; }
+        public uint HeatbeatInterval {get; set;}
         #endregion
 
         public ServerSentEventsService(ILogger<IServerSentEventsService> logger){
-            _logger = logger;
+            this._logger = logger;
+            this.HeatbeatInterval = 250;
+            this.UseHeartbeat = true;
         }
 
         #region Methods
@@ -76,7 +84,15 @@ namespace Infusion.ServerSentEvents
         internal Guid AddClient(ServerSentEventsClient client)
         {
             Guid clientId = Guid.NewGuid();
-            _clients.TryAdd(clientId, client);
+            if(_clients.TryAdd(clientId, client))
+            {
+                if(_clients.Count > 0 && UseHeartbeat && (_heartbeat == null || _heartbeat.IsCanceled || _heartbeat.IsCompleted)) 
+                {
+                    this._hearbeatCancellation = new CancellationTokenSource();
+                    this._hearbeatCancellation.Token.Register(this.HeartbeatCancellation);
+                    this._heartbeat = Heartbeat(this._hearbeatCancellation.Token);
+                }
+            }
             _logger.LogDebug(1100, "SSE added client with id '{0}'. '{1}' clients are registered.", clientId, _clients.Count);
             return clientId;
         }
@@ -84,7 +100,10 @@ namespace Infusion.ServerSentEvents
         internal void RemoveClient(Guid clientId)
         {
             ServerSentEventsClient client;
-            _clients.TryRemove(clientId, out client);
+            if(_clients.TryRemove(clientId, out client))
+            {
+                if(_clients.Count == 0 && _heartbeat != null && _heartbeat.IsCanceled == false) _hearbeatCancellation.Cancel(); 
+            }
             if(client != null) _logger.LogDebug(1100, "SSE removed client with id '{0}'. '{1}' clients are registered.", clientId, _clients.Count);
         }
 
@@ -96,6 +115,34 @@ namespace Infusion.ServerSentEvents
                 clientsTasks.Add(clientOperationAsync(client));
             }
             return Task.WhenAll(clientsTasks);
+        }
+
+        private async Task Heartbeat(CancellationToken cts)
+        {
+            _logger.LogDebug(1100, "SSE startup heartbeat.");
+            int id = 0;
+            while (true)
+            {
+                // discontinue heartbeat if no clients are listening
+                if(this._clients.Count == 0) break;
+                if(cts.IsCancellationRequested) break;
+
+                // send heartbeat SSE. This appears necessary for IIS in order to prevent the channel
+                // from timing out. Kestrel does not seem to requrire this....
+                await ForAllClientsAsync(client => client.SendEventAsync(new ServerSentEvent(){ 
+                    Id = (id++).ToString(),
+                    Type = "hearbeat", 
+                    Data = new List<string>(){
+                        DateTime.Now.ToString()
+                    }}));                
+                await Task.Delay(250);
+            }
+            _logger.LogDebug(1100, "SSE heartbeat cancellation requested.");
+        }
+
+        private void HeartbeatCancellation(){
+            this._heartbeat = null;
+            _logger.LogDebug(1100, "SSE heartbeat cancelled.");
         }
         #endregion
     }
