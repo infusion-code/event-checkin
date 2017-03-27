@@ -4,8 +4,15 @@ using Microsoft.Extensions.Configuration;
 
 namespace Infusion.CheckinAndGreeter
 {
+    /// <summary>'
+    /// Implements the main class for the CheckinAnGreeter program. 
+    /// </summary>
     public class Program
     {
+        /// <summary>
+        /// Entry point for the app
+        /// </summary>
+        /// <param name="args">String array containing arguments for the program</param>
         public static void Main(string[] args)
         {
             var config = new ConfigurationBuilder()

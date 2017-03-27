@@ -25,6 +25,9 @@ namespace Infusion.ServerSentEvents
         public IList<string> Data { get; set; }
         #endregion
 
+        /// <summary>
+        /// Returns the event as a json string
+        /// <summary>
         public override string ToString(){
             return JsonConvert.SerializeObject(this);
         }

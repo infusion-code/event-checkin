@@ -1,3 +1,4 @@
 
 body { background-color: #333; color:white }
 .side-menu .navbar-nav li a { border-bottom: 1px solid #555; }
+H1.error, H2.error { color: white; margin-left: 30px; }

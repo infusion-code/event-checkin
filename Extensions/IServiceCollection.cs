@@ -31,7 +31,6 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             services.AddSingleton<TServerSentEventsService>();
             services.AddSingleton<TIServerSentEventsService>(serviceProvider => serviceProvider.GetService<TServerSentEventsService>());
-
             return services;
         }
     }

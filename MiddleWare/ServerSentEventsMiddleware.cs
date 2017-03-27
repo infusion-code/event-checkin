@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
-
 namespace Infusion.ServerSentEvents
 {
     /// <summary>
@@ -12,37 +11,31 @@ namespace Infusion.ServerSentEvents
     /// </summary>
     public class ServerSentEventsMiddleware
     {
-        #region Fields
+        /// field declarations
         private readonly RequestDelegate _next;
-        private readonly ServerSentEventsService _serverSentEventsService;
+        private readonly IServerSentEventsService _serverSentEventsService;
         private readonly ILogger _logger;
-        #endregion
 
-        #region Constructor
         /// <summary>
         /// Initializes new instance of middleware.
         /// </summary>
         /// <param name="next">The next delegate in the pipeline.</param>
         /// <param name="serverSentEventsService">The service which provides operations over Server-Sent Events protocol.</param>
-        public ServerSentEventsMiddleware(RequestDelegate next, ServerSentEventsService serverSentEventsService, ILogger<ServerSentEventsMiddleware> logger)
+        /// <param name="logger">ILogger implementation used for trace logging</param>
+        public ServerSentEventsMiddleware(RequestDelegate next, IServerSentEventsService serverSentEventsService, ILogger<ServerSentEventsMiddleware> logger)
         {
-            if (next == null)
-            {
-                throw new ArgumentNullException(nameof(next));
-            }
-
-            if (serverSentEventsService == null)
-            {
-                throw new ArgumentNullException(nameof(serverSentEventsService));
-            }
+            if (next == null) throw new ArgumentNullException(nameof(next));
+            if (serverSentEventsService == null) throw new ArgumentNullException(nameof(serverSentEventsService));
 
             _next = next;
             _serverSentEventsService = serverSentEventsService;
             _logger = logger;
-        }
-        #endregion
 
-        #region Methods
+            // setup IServerSentEventsService heartbeat here based on local configuration properties
+            _serverSentEventsService.UseHeartbeat = true;
+            _serverSentEventsService.HeatbeatInterval = 1000;
+        }
+
         /// <summary>
         /// Process an individual request.
         /// </summary>
@@ -50,42 +43,48 @@ namespace Infusion.ServerSentEvents
         /// <returns>The task object representing the asynchronous operation.</returns>
         public async Task Invoke(HttpContext context)
         {
+            if(context == null) throw new ArgumentNullException("context");
+
+            //
+            // only process requests that have the appropriate Header
+            //
             if (context.Request.Headers[Constants.ACCEPT_HTTP_HEADER] == Constants.SSE_CONTENT_TYPE)
             {
-                _logger.LogDebug(1100, "New SSE Request from '{0}'", context.Connection.RemoteIpAddress);
+                if (_logger != null && _logger.IsEnabled(LogLevel.Trace))  _logger.LogTrace(Constants.c_middlewareTraceId, Constants.m_newConnectionRequest, context.Connection.RemoteIpAddress);
+
+                // create new client to service the request
                 context.Response.ContentType = Constants.SSE_CONTENT_TYPE;
                 await context.Response.Body.FlushAsync();
-                _logger.LogDebug(1100, "SSE sent content type to '{0}'", context.Connection.RemoteIpAddress);
+                ServerSentEventsClient client = new ServerSentEventsClient(context.Response);
+                if (_serverSentEventsService.ReconnectInterval.HasValue) await client.ChangeReconnectIntervalAsync(_serverSentEventsService.ReconnectInterval.Value);
+                if (_logger != null && _logger.IsEnabled(LogLevel.Trace)) _logger.LogTrace(Constants.c_middlewareTraceId, Constants.m_newSSEClientComplete, context.Connection.RemoteIpAddress);
 
-                ServerSentEventsClient client = new ServerSentEventsClient(context.Response, _logger);
 
-                if (_serverSentEventsService.ReconnectInterval.HasValue)
-                {
-                    await client.ChangeReconnectIntervalAsync(_serverSentEventsService.ReconnectInterval.Value);
-                }
-                _logger.LogDebug(1100, "SSE setup new client for request from '{0}'", context.Connection.RemoteIpAddress);
-
+                // check to see whether request is a reconnect request for a dropped connection
                 string lastEventId = context.Request.Headers[Constants.LAST_EVENT_ID_HTTP_HEADER];
                 if (!String.IsNullOrWhiteSpace(lastEventId))
                 {
                     await _serverSentEventsService.OnReconnectAsync(client, lastEventId);
-                     _logger.LogDebug(1100, "SSE rconnected client for serving request from '{0}'", context.Connection.RemoteIpAddress);
+                    if (_logger != null && _logger.IsEnabled(LogLevel.Trace)) _logger.LogTrace(Constants.c_middlewareTraceId, Constants.m_reconnectSSEClient, context.Connection.RemoteIpAddress);
                 }
 
+                // add client to the events service
                 Guid clientId = _serverSentEventsService.AddClient(client);
-                _logger.LogDebug(1100, "SSE added client with id '{0}' to service serving request from '{1}'", clientId, context.Connection.RemoteIpAddress);
+                if (_logger != null && _logger.IsEnabled(LogLevel.Trace)) _logger.LogTrace(Constants.c_middlewareTraceId, Constants.m_addSSEClientToService, clientId, context.Connection.RemoteIpAddress);
 
+                // go into wait state until abort request is received. The _serverSentEventsService implementation is responsible for sending 
+                // actual data into the channel. 
                 await context.RequestAborted.WaitAsync();
-                _logger.LogDebug(1100, "SSE Received abort request for client with id '{0}' to service serving request from '{1}'", clientId, context.Connection.RemoteIpAddress);
+                if (_logger != null && _logger.IsEnabled(LogLevel.Trace)) _logger.LogTrace(Constants.c_middlewareTraceId, Constants.m_abortSEEClient, clientId, context.Connection.RemoteIpAddress);
 
+                // remove client from service to prevent additional messages being sent to the channel.
                 _serverSentEventsService.RemoveClient(clientId);
-                _logger.LogDebug(1100, "SSE remove client with id '{0} 'to service serving request from '{1}'", clientId, context.Connection.RemoteIpAddress);
+                if (_logger != null && _logger.IsEnabled(LogLevel.Trace))_logger.LogTrace(Constants.c_middlewareTraceId, Constants.m_removeSSEClientFromService, clientId, context.Connection.RemoteIpAddress);
             }
             else
             {
                 await _next(context);
             }
         }
-        #endregion
     }
 }

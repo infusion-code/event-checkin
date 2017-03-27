@@ -13,9 +13,16 @@ namespace Infusion.ServerSentEvents
     public class ServerSentEventsService : IServerSentEventsService
     {
         #region Fields
-        private readonly ConcurrentDictionary<Guid, ServerSentEventsClient> _clients = new ConcurrentDictionary<Guid, ServerSentEventsClient>();
+        /// <summary>Dictionary maintaing currently connected clients.</summary>
+        private readonly ConcurrentDictionary<Guid, IServerSentEventsClient> _clients = new ConcurrentDictionary<Guid, IServerSentEventsClient>();
+        
+        /// <summary>Task representing the heartbeat event stream.</summary>
         private Task _heartbeat = null;
+
+        /// <summary>CancellationToken source for the current heartbeat operation.</summary>
         private CancellationTokenSource _hearbeatCancellation = null;
+        
+        /// <summary>ILogger implementation for trace logging.</summary>
         private readonly ILogger _logger;
         #endregion
 
@@ -25,13 +32,24 @@ namespace Infusion.ServerSentEvents
         /// </summary>
         public uint? ReconnectInterval { get; private set; }
 
+        /// <summary>
+        /// Gets or sets whether to use a heartbeat event. A heartbeat appears necessary for use with IIS to ensure reliable event delivery. 
+        /// If used with Kestrel only, set this to false.
+        /// </summary>
         public bool UseHeartbeat { get; set; }
+
+        /// <summary>
+        /// Gets or sets the hearbeat interval in milliseconds. The default is 1000.
         public uint HeatbeatInterval {get; set;}
         #endregion
 
+        /// <summary>
+        /// Creates a new instance of the ServerSentEventsService
+        /// </summary>
+        /// <param name="logger">ILogger implementation used for trace logging</param>
         public ServerSentEventsService(ILogger<IServerSentEventsService> logger){
             this._logger = logger;
-            this.HeatbeatInterval = 250;
+            this.HeatbeatInterval = 1000;
             this.UseHeartbeat = true;
         }
 
@@ -54,7 +72,7 @@ namespace Infusion.ServerSentEvents
         /// <returns>The task object representing the asynchronous operation.</returns>
         public Task SendEventAsync(string text)
         {
-            _logger.LogDebug(1100, "SSE initiating send for all clients with data '{0}'", text);
+            if(_logger != null && _logger.IsEnabled(LogLevel.Trace)) _logger.LogTrace(Constants.c_eventServiceTraceId, Constants.m_initiateSSESend, text);
             return ForAllClientsAsync(client => client.SendEventAsync(text));
         }
 
@@ -65,7 +83,7 @@ namespace Infusion.ServerSentEvents
         /// <returns>The task object representing the asynchronous operation.</returns>
         public Task SendEventAsync(ServerSentEvent serverSentEvent)
         {
-            _logger.LogDebug(1100, "SSE initiating send for all clients with data '{0}'", serverSentEvent.ToString());
+            if(_logger != null && _logger.IsEnabled(LogLevel.Trace)) _logger.LogTrace(Constants.c_eventServiceTraceId, Constants.m_initiateSSESend, serverSentEvent);
             return ForAllClientsAsync(client => client.SendEventAsync(serverSentEvent));
         }
 
@@ -77,11 +95,16 @@ namespace Infusion.ServerSentEvents
         /// <returns>The task object representing the asynchronous operation.</returns>
         public virtual Task OnReconnectAsync(IServerSentEventsClient client, string lastEventId)
         {
-            _logger.LogDebug(1100, "SSE client reconnect");
-            return System.Threading.TaskHelper.GetCompletedTask();
+            if(_logger != null && _logger.IsEnabled(LogLevel.Trace)) _logger.LogTrace(Constants.c_eventServiceTraceId, Constants.m_initiateSSEReconnect);
+            return System.Threading.TaskHelper.GetCompletedTask(); 
         }
  
-        internal Guid AddClient(ServerSentEventsClient client)
+        /// <summary>
+        /// Adds a new IServerSentEventsClient to the list of connected clients
+        /// </summary>
+        /// <param name="client">IServerSentEventsClient implementation representing the client.</param>
+        /// <returns>Guid that can be used to track the client.</returns>
+        Guid IServerSentEventsService.AddClient(IServerSentEventsClient client)
         {
             Guid clientId = Guid.NewGuid();
             if(_clients.TryAdd(clientId, client))
@@ -89,24 +112,41 @@ namespace Infusion.ServerSentEvents
                 if(_clients.Count > 0 && UseHeartbeat && (_heartbeat == null || _heartbeat.IsCanceled || _heartbeat.IsCompleted)) 
                 {
                     this._hearbeatCancellation = new CancellationTokenSource();
-                    this._hearbeatCancellation.Token.Register(this.HeartbeatCancellation);
+                    this._hearbeatCancellation.Token.Register(this.OnHeartbeatCancellation);
                     this._heartbeat = Heartbeat(this._hearbeatCancellation.Token);
                 }
             }
-            _logger.LogDebug(1100, "SSE added client with id '{0}'. '{1}' clients are registered.", clientId, _clients.Count);
+            if(_logger != null && _logger.IsEnabled(LogLevel.Trace)) _logger.LogTrace(Constants.c_eventServiceTraceId, Constants.m_registerSSEClient, clientId, _clients.Count);
             return clientId;
         }
 
-        internal void RemoveClient(Guid clientId)
+        /// <summary>
+        /// Removes a IServerSentEventsClient from the list of connected clients
+        /// </summary>
+        /// <param name="clientId">Guid of the tracked client. This should be the guid received when calling AddClient().</param>
+        void IServerSentEventsService.RemoveClient(Guid clientId)
         {
-            ServerSentEventsClient client;
+            IServerSentEventsClient client;
             if(_clients.TryRemove(clientId, out client))
             {
-                if(_clients.Count == 0 && _heartbeat != null && _heartbeat.IsCanceled == false) _hearbeatCancellation.Cancel(); 
+                if(_clients.Count == 0 && _heartbeat != null && _heartbeat.IsCanceled == false) _hearbeatCancellation.Cancel();
+                if(_logger != null && _logger.IsEnabled(LogLevel.Trace)) _logger.LogTrace(Constants.c_eventServiceTraceId, Constants.m_removeSSEClient, clientId, _clients.Count); 
             }
-            if(client != null) _logger.LogDebug(1100, "SSE removed client with id '{0}'. '{1}' clients are registered.", clientId, _clients.Count);
         }
 
+        /// <summary>
+        /// Delegate invoked on Heartbeat cancellation. Performs cleanup activities.
+        /// </summary>
+        protected virtual void OnHeartbeatCancellation(){
+            this._heartbeat = null;
+            if(_logger != null && _logger.IsEnabled(LogLevel.Trace)) _logger.LogTrace(Constants.c_eventServiceTraceId, Constants.m_heartbeatCancelled);
+        }
+
+        /// <summary>
+        /// Executes and operation on all connected clients
+        /// </summary>
+        /// <param name="clientOperationAsync">Func<ServerSentEventsClient, Task> delegate to invoke.</param>
+        /// <returns>The task object representing the asynchronous operation.</returns>
         private Task ForAllClientsAsync(Func<ServerSentEventsClient, Task> clientOperationAsync)
         {
             List<Task> clientsTasks = new List<Task>();
@@ -117,9 +157,14 @@ namespace Infusion.ServerSentEvents
             return Task.WhenAll(clientsTasks);
         }
 
+        /// <summary>
+        /// Starts a repeating Heartbeat task. This appears necessary on IIS to facilitate timely delivery of messages.
+        /// </summary>
+        /// <param name="cts">CancellationToken to be used to cancel the heartbeat task.</param>
+        /// <returns>The task object representing the asynchronous operation.</returns>
         private async Task Heartbeat(CancellationToken cts)
         {
-            _logger.LogDebug(1100, "SSE startup heartbeat.");
+            if(_logger != null && _logger.IsEnabled(LogLevel.Trace)) _logger.LogTrace(Constants.c_eventServiceTraceId, Constants.m_startHearbeat, this.HeatbeatInterval);
             int id = 0;
             while (true)
             {
@@ -131,18 +176,13 @@ namespace Infusion.ServerSentEvents
                 // from timing out. Kestrel does not seem to requrire this....
                 await ForAllClientsAsync(client => client.SendEventAsync(new ServerSentEvent(){ 
                     Id = (id++).ToString(),
-                    Type = "hearbeat", 
+                    Type = Constants.SSE_HEARTBEAT, 
                     Data = new List<string>(){
                         DateTime.Now.ToString()
                     }}));                
                 await Task.Delay(250);
             }
-            _logger.LogDebug(1100, "SSE heartbeat cancellation requested.");
-        }
-
-        private void HeartbeatCancellation(){
-            this._heartbeat = null;
-            _logger.LogDebug(1100, "SSE heartbeat cancelled.");
+            if(_logger != null && _logger.IsEnabled(LogLevel.Trace)) _logger.LogTrace(Constants.c_eventServiceTraceId, Constants.m_cancelHeartbeat);
         }
         #endregion
     }

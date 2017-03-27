@@ -7,7 +7,6 @@ namespace Infusion.ServerSentEvents
     /// </summary>
     public interface IServerSentEventsClient
     {
-        #region Methods
         /// <summary>
         /// Sends event to client.
         /// </summary>
@@ -21,6 +20,5 @@ namespace Infusion.ServerSentEvents
         /// <param name="serverSentEvent">The event.</param>
         /// <returns>The task object representing the asynchronous operation.</returns>
         Task SendEventAsync(ServerSentEvent serverSentEvent);
-        #endregion
     }
 }
