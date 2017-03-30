@@ -24,11 +24,10 @@ export class LoginComponent implements OnInit, OnDestroy {
     constructor(private _config: AppConfigService, private _userService: UserService, private _currentNav: CurrentNavService){ }
 
     public ngOnInit(){
-        let timer: Observable<number> = null;
         this._userService.EnsureLogin("/login");
         this._initialNavSubscription = this._currentNav.RouteRequest.subscribe(u => {
             if(u != "" && this._config.IsAuthenticated) this._currentNav.Route(u);
-        })
+        });
     }
 
     public ngOnDestroy(){

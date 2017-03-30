@@ -2,7 +2,7 @@ import { Injectable, OnDestroy } from '@angular/core';
 import { Router, UrlTree } from '@angular/router';
 import { Observable, Subscription, Subject } from 'rxjs/Rx';
 import { Http } from '@angular/http';
-import { SessionStorage } from 'ng2-app-scaffold';
+import { SessionStorage, SessionStorageService } from 'ng2-app-scaffold';
 
 @Injectable()
 export class UserService {
@@ -10,9 +10,10 @@ export class UserService {
         private _bearerToken: string = "";
     private _clientId: string = "";
     private _serviceRoot: string = "";
-    private _loginTimerSubscription: Subscription = null;
     private _loginScreenPath: string = "";
+    private _requestedPostAuthenticationRedirect: string | UrlTree = "";
     private _isAuthenticated: boolean = false;
+    private _navProviderRegistered: boolean = false;
     private _authenticatedChangedSource:Subject<boolean> = new Subject<boolean>();
 
     public get BearerToken(): string { 
@@ -31,38 +32,50 @@ export class UserService {
     public get LoginScreenPath():string { return this._loginScreenPath; }
     public set LoginScreenPath(val: string) { this._loginScreenPath = val; }
 
-    public get LoginEndPoint(): string {
-        return '{0}/oauth/authorize?response_type=token&client_id={1}'.replace('{0}', this._serviceRoot).replace('{1}', this._clientId);
-    }
+    public get LoginEndPoint(): string { return '{0}/oauth/authorize?response_type=token&client_id={1}'.replace('{0}', this._serviceRoot).replace('{1}', this._clientId); }
+    public get RequestedPostAuthenticationRedirect():string | UrlTree { return this._requestedPostAuthenticationRedirect; }
+    public get NavProviderRegistered(): boolean  { return this._navProviderRegistered; } 
 
     constructor(private _router: Router, clientId?: string, endpointBase?: string, loginScreenPath? :string) {
         this._clientId = clientId;
         this._serviceRoot = endpointBase;
         this._loginScreenPath = loginScreenPath;
+
+        // get previsouly saved redirect url from local storage
+        this._requestedPostAuthenticationRedirect = SessionStorageService.Instance("Infusion Event Checkin").get("PostAuthenticationRedirect") || "";
      }
 
     public EnsureLogin(redirectAfterSuccessUrl?:string | UrlTree):string { 
-        if(this._bearerToken == "") {
-            // check route to make sure we are on the login page
-            let path:string = "";
-            if(this._router.routerState.root.firstChild) path = this._router.routerState.root.firstChild.snapshot.url.join('');
+        // check route to make sure we are on the login page
+        let path:string = "";
+        if(this._router.routerState.root.firstChild) path = this._router.routerState.root.firstChild.snapshot.url.join('');
+        if(this._bearerToken == "") {    
             if(this._loginScreenPath != '' && !this._loginScreenPath.toLowerCase().endsWith(path)) {
+                this._requestedPostAuthenticationRedirect = redirectAfterSuccessUrl;
                 this._router.navigateByUrl(this._loginScreenPath);
                 return "";
             } 
             return this.Login(redirectAfterSuccessUrl);        
         }
         else {
+           // reset saved redirect sessio routerState
+           SessionStorageService.Instance("Infusion Event Checkin").set("PostAuthenticationRedirect",""); 
+
            if(!this._isAuthenticated) {
                this._isAuthenticated = true;
                this.ChangeAutenticationState(this._isAuthenticated);
            }
-           if(redirectAfterSuccessUrl) this._router.navigateByUrl(redirectAfterSuccessUrl); 
+           if((this._loginScreenPath == '' || !this._loginScreenPath.toLowerCase().endsWith(path)) && redirectAfterSuccessUrl) {
+                if(this._navProviderRegistered) this._router.navigateByUrl(redirectAfterSuccessUrl); 
+                else this._requestedPostAuthenticationRedirect = redirectAfterSuccessUrl;
+           } 
            return this._bearerToken;
         }    
     }
 
     public ngOnDestroy(){  }
+
+    public RegisterNavProvider(){ this._navProviderRegistered = true; }
 
     protected Login(redirectAfterSuccessUrl?:string | UrlTree): string{
         let timer: Observable<number> = null;
@@ -73,13 +86,19 @@ export class UserService {
         if(x['token_type'] == null || x['token_type'] != 'Bearer' || x['access_token'] == null){
             if(timer == null){
                 timer = Observable.timer(200);
-                this._loginTimerSubscription = timer.subscribe(t => { this.RedirectToOAuthEndPoint(t); });
+                timer.subscribe(t => { this.RedirectToOAuthEndPoint(); });
             }
         }
         else{
+            // reset saved redirect sessio routerState
+            SessionStorageService.Instance("Infusion Event Checkin").set("PostAuthenticationRedirect",""); 
+
             this._bearerToken = x['access_token'];
             this._isAuthenticated = true;
-            if(redirectAfterSuccessUrl) this._router.navigateByUrl(redirectAfterSuccessUrl);
+            if(redirectAfterSuccessUrl || this._requestedPostAuthenticationRedirect){
+                if(this._navProviderRegistered) this._router.navigateByUrl(this._requestedPostAuthenticationRedirect !=="" ? this._requestedPostAuthenticationRedirect : redirectAfterSuccessUrl); 
+                else this._requestedPostAuthenticationRedirect = this._requestedPostAuthenticationRedirect !=="" ? this._requestedPostAuthenticationRedirect : redirectAfterSuccessUrl;
+            }
         }
         this.ChangeAutenticationState(this._isAuthenticated);
         return this._bearerToken;
@@ -89,8 +108,9 @@ export class UserService {
         this._authenticatedChangedSource.next(authenticated);
     }
     
-    private RedirectToOAuthEndPoint(t: number){
-        this._loginTimerSubscription.unsubscribe();
+    private RedirectToOAuthEndPoint(){
+        // put redirect url into localstorage so we can redirect after authentication...
+        SessionStorageService.Instance("Infusion Event Checkin").set("PostAuthenticationRedirect", this._requestedPostAuthenticationRedirect);
         window.location.href = this.LoginEndPoint;
     }
 
