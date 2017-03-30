@@ -46,6 +46,8 @@ import { EventsService } from '../services/eventsService';
 })
 export class EventDashboard implements OnInit, OnDestroy {
     private _parameterSubscription: Subscription = null;
+    private _checkedinSubscription: Subscription = null;
+    private _registeredSubscription: Subscription = null;
     private _id: string;
     private _name: string;
     private _event: Event; 
@@ -69,13 +71,16 @@ export class EventDashboard implements OnInit, OnDestroy {
             this._checkedInAttendees = new Array<Attendee>();
             this._registeredAttendees = new Array<Attendee>();
             this._events.GetEvent(this._id).subscribe(e => this._event = e);
-            this._events.GetRegisteredAttendees(this._id).subscribe(a => { 
+            
+            if(this._registeredSubscription) this._registeredSubscription.unsubscribe();
+            if(this._checkedinSubscription) this._checkedinSubscription.unsubscribe();
+            this._registeredSubscription = this._events.GetRegisteredAttendees(this._id).subscribe(a => { 
                 this._registeredAttendees = this._registeredAttendees.concat(a).sort((a,b) => { 
                         if (a.Name < b.Name) return -1; 
                         if (a.Name > b.Name) return 1; 
                         return 0;}); 
             }); 
-            this._events.GetCheckedInAttendees(this._id).subscribe(a => { 
+            this._checkedinSubscription = this._events.GetCheckedInAttendees(this._id).subscribe(a => { 
                 this._checkedInAttendees = this._checkedInAttendees.concat(a).sort((a,b) => { 
                         if (a.Name < b.Name) return -1; 
                         if (a.Name > b.Name) return 1; 
@@ -124,6 +129,8 @@ export class EventDashboard implements OnInit, OnDestroy {
 
     public ngOnDestroy() {
         if (this._parameterSubscription) this._parameterSubscription.unsubscribe();
+        if (this._checkedinSubscription) this._checkedinSubscription.unsubscribe();
+        if (this._registeredSubscription) this._registeredSubscription.unsubscribe();
     }
 
 }
