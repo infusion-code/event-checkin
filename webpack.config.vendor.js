@@ -26,6 +26,7 @@ module.exports = {
             '@angular/platform-server',
             'angular2-universal',
             'angular2-universal-polyfills',
+            'animate.css/animate.min.css',
             'bootstrap',
             'bootstrap/dist/css/bootstrap.css',
             'ng2-app-scaffold',
