@@ -1,0 +1,23 @@
+{
+    "short_name": "Event Checkin",
+    "name": "Infusion Event Checkin and Greeter",
+    "description": "This app allow checkin to events managed by Eventbrite and displays a greeter page to let your audience know when new people arrive.",
+    "icons": [{
+            "src": "/static/img/logo_infusion_large.png",
+            "sizes": "143x143",
+            "type": "image/png"
+        },
+        {
+            "src": "/static/img/logo_infusion_medium.png",
+            "sizes": "95x95",
+            "type": "image/png"
+        },
+        {
+            "src": "/static/img/logo_infusion_small.png",
+            "sizes": "70x70",
+            "type": "image/png"
+        }
+    ],
+    "start_url": "/login",
+    "display": "standalone"
+}
