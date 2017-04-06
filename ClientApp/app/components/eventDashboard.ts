@@ -14,16 +14,17 @@ import { EventsService } from '../services/eventsService';
             <div class="side-body padding-top">
                 <event-card [Event]="Event" (Launch)="OnEventLaunch($event)"></event-card>
                 <div class="attendeeSection">
+                    <div class="registerAttendeeBadge" title="Register Attendee" (click)="OnNewRegistrant()"><span class="icon fa fa-plus fa-plus-square-o"></span></div>
                     <ng-container *ngIf="RegisteredAttendees != null && RegisteredAttendees.length > 0">
-                        <a class="sectionheader" data-toggle="collapse" href="#registered_section"><h4>Registered Attendees</h4><span class="icon fa"></span></a>
-                        <div class="row attendeeContainer align-items-start collapse in" id="registered_section">
+                        <a class="sectionheader" data-toggle="collapse" href="#registered_section"><h4>Registered Attendees ({{RegisteredAttendees.length}})</h4><span class="icon fa"></span></a>
+                        <div class="row attendeeContainer align-items-start collapse in" id="registered_section"> 
                             <div *ngFor="let attendee of RegisteredAttendees" class="col-xs-12 col-sm-6 col-md-6 col-lg-4 col-xl-3" >
                                 <attendee-card [ngClass]="{'green': attendee.CheckedIn, 'red': !attendee.CheckedIn}"  [Attendee]="attendee" [Event]="Event" (Checkout)="OnCheckout($event)" (Checkin)="OnCheckin($event)" ></attendee-card>
                             </div>
                         </div> 
                     </ng-container>
                     <ng-container *ngIf="CheckedInAttendees != null && CheckedInAttendees.length > 0">
-                        <a class="sectionheader" data-toggle="collapse" href="#checked-in_section"><h4>CheckedIn Attendees</h4><span class="icon fa"></span></a>
+                        <a class="sectionheader" data-toggle="collapse" href="#checked-in_section"><h4>CheckedIn Attendees ({{CheckedInAttendees.length}})</h4><span class="icon fa"></span></a>
                         <div class="row attendeeContainer align-items-start collapse in" id="checked-in_section">   
                             <div *ngFor="let attendee of CheckedInAttendees" class="col-xs-12 col-sm-6 col-md-6 col-lg-4 col-xl-3">
                                 <attendee-card [ngClass]="{'green': attendee.CheckedIn, 'red': !attendee.CheckedIn}"  [Attendee]="attendee" [Event]="Event" (Checkout)="OnCheckout($event)" (Checkin)="OnCheckin($event)" ></attendee-card>
@@ -35,6 +36,7 @@ import { EventsService } from '../services/eventsService';
         </ng-container>
     `,
     styles: [`
+        .registerAttendeeBadge { float: right; font-size: 24px; line-height: 24px; }
         .attendeeSection { margin-top: 25px; }
         .attendeeContainer { margin-top: 0px; }
         a.sectionheader, a.sectionheader:hover, a.sectionheader:focus, a.sectionheader:active, a.sectionheader:visited { color: white; display: block; }
@@ -89,6 +91,9 @@ export class EventDashboard implements OnInit, OnDestroy {
         });
     }
 
+    public OnNewRegistrant(){
+        if(window) window.open(this._event.DetailUrl, "eventbritereg");;
+    }
 
     public OnCheckin(attendee: Attendee){
         attendee.UpdateInProgress = true;

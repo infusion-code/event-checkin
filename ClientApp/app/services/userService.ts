@@ -55,6 +55,7 @@ export class UserService {
                 this._router.navigateByUrl(this._loginScreenPath);
                 return "";
             } 
+            if(this._loginScreenPath != '' && this._loginScreenPath.toLowerCase().endsWith(path)) return this.Login("");
             return this.Login(redirectAfterSuccessUrl);        
         }
         else {
@@ -90,7 +91,7 @@ export class UserService {
             }
         }
         else{
-            // reset saved redirect sessio routerState
+            // reset saved redirect session routerState
             SessionStorageService.Instance("Infusion Event Checkin").set("PostAuthenticationRedirect",""); 
 
             this._bearerToken = x['access_token'];

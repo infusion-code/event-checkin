@@ -8,7 +8,7 @@ import { EventsService } from '../services/eventsService';
     template: `
         <div class="profile-img" [ngClass]="{'hidden-xs hidden-sm col-md-3 col-lg-2 col-xl-1': !UseHeroStyling, 'col-xs-3': UseHeroStyling}" [ngStyle]="{'background-image': 'url(' + Image + ')'}"></div>
         <div [ngClass]="{
-                'col-xs-9 col-sm-9 col-md-7 col-lg-8 col-xl-10': ShowAction && !UseHeroStyling, 
+                'col-xs-10 col-sm-9 col-md-7 col-lg-8 col-xl-10': ShowAction && !UseHeroStyling, 
                 'col-xs-12 col-sm-12 col-md-9 col-lg-10 col-xl-11': !ShowAction && !UseHeroStyling,
                 'col-xs-6': ShowAction && UseHeroStyling,
                 'col-xs-9': !ShowAction && UseHeroStyling
@@ -17,12 +17,7 @@ import { EventsService } from '../services/eventsService';
             <div [ngClass]="{'nocompany': Attendee.Company==null || Attendee.Company == ''}" class="company">{{Attendee.Company}}&nbsp;</div>
             <div class="email" title="{{Attendee.Email}}">{{Attendee.Email}}</div>
         </div>
-        <div *ngIf="ShowAction" class="checkin" (click)="ToggleCheckedInStatus()" [ngClass]="{
-                'green': Attendee.CheckedIn, 
-                'red': !Attendee.CheckedIn, 
-                'col-xs-3 col-sm-3 col-md-2 col-lg-2 col-xl-1': !UseHeroStyling,
-                'col-xs-3': UseHeroStyling
-            }">
+        <div *ngIf="ShowAction" class="checkin" (click)="ToggleCheckedInStatus()" [ngClass]="{'green': Attendee.CheckedIn, 'red': !Attendee.CheckedIn, 'col-xs-2 col-sm-3 col-md-2 col-lg-2 col-xl-1': !UseHeroStyling,'col-xs-3': UseHeroStyling}">
             <span class="icon fa"  [ngClass]="{'fa-sign-out': Attendee.CheckedIn && !Attendee.UpdateInProgress, 'fa-sign-in': !Attendee.CheckedIn && !Attendee.UpdateInProgress, 'fa-circle-o-notch fa-spin': Attendee.UpdateInProgress}" ></span>
         </div>
     `,
