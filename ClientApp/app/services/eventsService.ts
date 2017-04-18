@@ -117,7 +117,7 @@ export class EventsService  {
                     new Date(e.start.utc),
                     new Date(e.end.utc),
                     e.venue.address.localized_address_display,
-                    e.logo ? e.logo.url || null : null,
+                    e.logo ? (e.logo.original ? e.logo.original.url || null : e.logo.url || null) : null,
                     e.name.html,
                     e.description.html
                 );
