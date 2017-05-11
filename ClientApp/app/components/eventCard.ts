@@ -7,17 +7,17 @@ import { Event } from '../models/event'
         <ng-container *ngIf="Event != null">
             <div class="row event">
                 <div class="col-xl-1 col-lg-3 col-md-4 hidden-sm hidden-xs eventImage" [ngStyle]="{'background-image': Event.ImageUrl && Event.ImageUrl!='' ? 'url(' + Event.ImageUrl + ')' : ''}"></div>
-                <div class="col-xl-9 col-lg-6 col-sm-8 col-md-5 col-xs-11">
+                <div class="col-xl-9 col-lg-6 col-sm-8 col-md-5 col-xs-7">
                     <div class="title"><span [innerHTML]='Event.NameAsHtml'></span><a class="expandToggle hidden-xs hidden-sm hidden-xl" data-toggle="collapse" href="#event-description"></a></div>
                     <div id="event-description" class="description hidden-xs hidden-sm collapse in" [innerHTML]='Event.DescriptionAsHtml'></div>
                     <div class="location hidden-xs" [innerHTML]='Event.Location'></div>
                 </div>
-                <div class="col-xl-1 col-lg-2 col-sm-3 col-md-2 col-xs-12">
+                <div class="col-xl-1 col-lg-2 col-sm-3 col-md-2 col-xs-3">
                     <div class="date hidden-xs">{{Event.Start.toLocaleDateString()}}</div>
                     <div class="time hidden-xs">{{Event.Start.toLocaleTimeString()}} - {{Event.End.toLocaleTimeString()}}</div>
                     <div class="time hidden-xl hidden-lg hidden-md hidden-sm">{{Event.Start.toLocaleDateString()}}, {{Event.Start.toLocaleTimeString()}} - {{Event.End.toLocaleTimeString()}}</div>
                 </div>
-                <div class="col-xl-1 col-lg-1 col-md-1 col-sm-1 col-xs-1 launch" title="Launch Event" (click)="LaunchEvent()"><span class="icon fa fa-sign-in"></span></div>
+                <div class="col-xl-1 col-lg-1 col-md-1 col-sm-1 col-xs-2 launch" title="Launch Event" (click)="LaunchEvent()"><span class="icon fa fa-sign-in"></span></div>
             </div>
         </ng-container>
     `,
