@@ -25,7 +25,7 @@ import { GreeterService } from './services/greeterService';
     declarations: [ ErrorComponent, LoginComponent, EventDashboard, EventCard, AttendeeCard, GreeterComponent ],
     imports: [
         UniversalModule, // Must be first import. This automatically imports BrowserModule, HttpModule, and JsonpModule too.
-        AppScaffoldModule,
+        AppScaffoldModule.forRoot(),
         AppRoutingModule,
         TilesAndCardsModule
     ],

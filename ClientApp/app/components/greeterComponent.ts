@@ -47,9 +47,9 @@ import { EventsService } from '../services/eventsService';
         .expandToggle.collapsed:after { font-family: FontAwesome; content: "\\f107" }
         .exit { position: relative; z-index: 10; float: right; font-size: 2em; padding: 20px 25px 10px 25px }
         .eventInfo { position: relative; }
-        .eventInfoOverlay { position: absolute; background-color: black; opacity: 0.3; left: 0px; right: 0px; }
+        .eventInfoOverlay { position: absolute; background-color: black; opacity: 0.6; left: 0px; right: 0px; }
         .eventInfoOverlay * { visibility: hidden; }
-        .overlay { width: 100%; height: 100%; background-color: black; opacity: 0.6; position: absolute; }
+        .overlay { width: 100%; height: 100%; background-color: black; opacity: 0.3; position: absolute; }
         .greeting { background-color: rgba(0,0,0,0.3); position: relative; top: 0; left: 0; bottom: 0; right: 0; padding: 2em; display: flex; flex-direction: column;  flex-grow: 1; align-items: flex-start; font-size: 2em; line-height: 2em; }
         .green { background-color: #0d6f2b }
         .red { background-color: #df6868 }
