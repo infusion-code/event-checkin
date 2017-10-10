@@ -20,6 +20,8 @@ export class Event{
     public get End(): Date { return this._end; }
     public get Location(): string { return this._location; }
     public get ImageUrl(): string { return this._image; }
+    public get Footer2(): string{ return this._nameHtml.split(":").pop(); }
+    public get Footer1(): string{ return this._location;}
 
     constructor(id: string, name:string, description: string, url:string, start:Date, end?:Date, location?:string, image?:string, nameHtml?:string, descriptionHtml?:string ){
         this._id = id;

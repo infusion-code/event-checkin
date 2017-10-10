@@ -8,6 +8,7 @@ export class Attendee{
     private _checkedin: boolean;
     private _updateInProgress: boolean;
     private _numberOfTickets: number;
+    private _jobTitle: string;
 
     public get Id(): string { return this._id; }
     public get Name(): string { return this._name; }
@@ -15,6 +16,9 @@ export class Attendee{
     public get DetailUrl(): string { return this._detail; }
     public get Email(): string { return this._email; }
     public get ImageUrl(): string { return this._image; }
+    public get FirstName(): string { return this._name.split(' ').shift(); }
+    public get LastName(): string { return this._name.split(' ').pop(); }  
+    public get JobTitle(): string{ return this._jobTitle;}  
  
     public get CheckedIn(): boolean { return this._checkedin; }
     public set CheckedIn(val: boolean) { this._checkedin = val; }
@@ -23,7 +27,7 @@ export class Attendee{
     public get NumberOfTickets() : number { return this._numberOfTickets; }
     public set NumberOfTickets(val: number) { this._numberOfTickets = val; }
 
-    constructor(id: string, name:string, company: string, profileUrl:string, email:string, image?:string, checkedin?: boolean, numberOfTickets?: number ){
+    constructor(id: string, name:string, company: string,profileUrl:string, email:string, image?:string, checkedin?: boolean, numberOfTickets?: number ){
         this._id = id;
         this._name = name;
         this._company = company;
