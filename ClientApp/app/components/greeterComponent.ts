@@ -55,13 +55,13 @@ import { EventsService } from '../services/eventsService';
                     </ng-container>
                 </div>
                 <div class="countdown">
-                    <span *ngIf="_seconds === -2">The event is over.</span>
-                    <span *ngIf="_seconds === -1">The event is in progress.</span>
-                    <span *ngIf="_seconds >= 0 && _hours < 24">
-                        Begins today in <span class="highlight">{{MinTwoDigits(_hours)}}</span>:<span class="highlight">{{MinTwoDigits(_minutes)}}</span>:<span class="highlight">{{MinTwoDigits(_seconds)}}</span>.
+                    <span *ngIf="Seconds === -2">The event is over.</span>
+                    <span *ngIf="Seconds === -1">The event is in progress.</span>
+                    <span *ngIf="Seconds >= 0 && Hours < 24">
+                        Begins today in <span class="highlight">{{MinTwoDigits(Hours)}}</span>:<span class="highlight">{{MinTwoDigits(Minutes)}}</span>:<span class="highlight">{{MinTwoDigits(Seconds)}}</span>.
                     </span>
-                    <span *ngIf="_seconds >= 0 && _hours >= 24">
-                        Begins in <span class="highlight">{{Floor(_hours/24)}}</span> days, <span class="highlight">{{MinTwoDigits(_hours%24)}}</span>:<span class="highlight">{{MinTwoDigits(_minutes)}}</span>:<span class="highlight">{{MinTwoDigits(_seconds)}}</span>.
+                    <span *ngIf="Seconds >= 0 && Hours >= 24">
+                        Begins in <span class="highlight">{{Floor(Hours/24)}}</span> days, <span class="highlight">{{MinTwoDigits(Hours%24)}}</span>:<span class="highlight">{{MinTwoDigits(Minutes)}}</span>:<span class="highlight">{{MinTwoDigits(Seconds)}}</span>.
                     </span>
                     <img class="logo bottom" src="https://cdn2.xamarin.com/consulting-partners/Infusion_Logo_200px.png">
                 </div>
@@ -156,7 +156,9 @@ export class GreeterComponent implements OnInit, OnDestroy {
     public get Notices(): Array<any> { return this._notices; }
     public get Event():Event { return this._event; }
     public get Collapsed(): boolean { return this._collapsed; }
-
+    public get Hours(): number { return this._hours; }
+    public get Minutes(): number { return this._minutes; }
+    public get Seconds(): number { return this._seconds; }
 
     constructor(private _config: AppConfigService, private _router: Router, private _route: ActivatedRoute, private _greeter: GreeterService, private _events: EventsService, private _change: ChangeDetectorRef) { }
     
